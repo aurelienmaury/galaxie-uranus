@@ -6,7 +6,7 @@
 ######DEFINE SOME BASIC VARIABLES######
 #######################################
 SCRIPTNAME="tvh-transcoder.sh"
-VERION="0.3"
+VERION="0.4"
 
 ######HANDBRAKECLI CHECK######
 ###########################
@@ -14,16 +14,6 @@ HANDBRAKECLI_PATH=`which HandBrakeCLI`
 if [ ! $HANDBRAKECLI_PATH ]; then
     echo "HandBrakeCLI is require,\`which HandBrakeCLI\` return nothing"
     echo " Please install \"HandBrakeCLI\" or verify it is aviable on your \$PATH env var"
-    echo " $SCRIPTNAME will abort..."
-    exit 1
-fi
-
-######MEDIAINFO CHECK######
-###########################
-MEDIAINFO_PATH=`which mediainfo`
-if [ ! $MEDIAINFO_PATH ]; then
-    echo "Mediainfo is require,\`which mediainfo\` return nothing"
-    echo " Please install \"mediainfo\" or verify it is aviable on your \$PATH env var"
     echo " $SCRIPTNAME will abort..."
     exit 1
 fi
@@ -50,20 +40,20 @@ if [ ! -f "$1" ]; then
     exit 1
 fi
 
-######DEFINE SOME BASIC VARIABLES######
-#######################################
 # Take the first and unic parameter and consider it as the file to encode
 readonly VIDEO_FILENAME="$1"
 VIDEO_FILENAME_EXT=${VIDEO_FILENAME##*.}
 VIDEO_SHORTNAME="`basename "$VIDEO_FILENAME" ".$VIDEO_FILENAME_EXT"`"
 WORKINGDIR=`dirname "$VIDEO_FILENAME"`
 
-HTSHOME=$(eval echo ~"$(whoami)")
-LOGDIR="$HTSHOME/.hts/tvheadend/dvr/log"
-
-FAVORITE_LANGUAGE="French"
+######DEFINE SOME BASIC VARIABLES######
+#######################################
+FAVORITE_LANGUAGE="Francais"
 VIDEO_TARGET_EXT="mkv"
 X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:vbv_maxrate=24000:vbv_bufsize=24000:nal_hrd=none:vbv-bufsize=24000:vbv-maxrate=24000:fast_pskip=0:decimate=1:bframes=6:direct=auto:weightb=1:weightp=2"
+
+MAXHEIGHT=720
+#MAXHEIGHT=1080
 
 ######USUAL FONCTION######
 ##########################
@@ -115,96 +105,116 @@ function optimal_res() {
     echo "${NAMES[$BEST_GUESS]}"
 }
 
-
-
-######MEDIAINFO CHECK######
+######MEDIA SCAN CHECK######
 ###########################
-FULLMEDIAINFO=$($MEDIAINFO_PATH "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")
+SCAN_RESULT=$($HANDBRAKECLI_PATH --scan --main-feature --input "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT" 2>&1)
 if [ $? != 0 ]; then
-    # There were errors with Mediainfo. 
-    echo "Mediainfo encountered an error."
-        exit 1
-    else
-        echo "Starting Media analyse..."
-  fi
+    # There were errors with HandBrakeCLI scan. 
+    echo "$HANDBRAKECLI_PATH --scan --main-feature --input \"$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT\" encountered an error."
+    exit 1
+else
+    echo "Starting media analyse..."
+    #######ANALAYZE AUDIO TRACKS AND DO LANGUAGE SELECTION######
+    ############################################################
+    AUDIO_TRACK_LIST=${SCAN_RESULT#*+\ audio\ tracks:}
+    AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST%+\ subtitle\ tracks:*}
+    AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST// /} # replace " " with ""
 
-#######ANALAYZE AUDIO TRACKS AND DO LANGUAGE SELECTION######
-############################################################
+    T1=1
+    for TRACK_INFO in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
+        IFS=',' read -ra TRACK_INFO_ELEMENT <<< "$TRACK_INFO"
+        #DEBUG for control the list
+        #for index in "${!TRACK_INFO_ELEMENT[@]}"; do  
+            #echo "$index ${TRACK_INFO_ELEMENT[index]}"
+        #done
+        unset IFS
+        #IF tat the tack number 1
+        if [ ${TRACK_INFO_ELEMENT[0]} == 1 ]; then
+            if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "$FAVORITE_LANGUAGE" ); then
+                #echo "Found $FAVORITE_LANGUAGE"
+                T1=1
+            fi
+        else
+            if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "$FAVORITE_LANGUAGE" ); then
+                if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "AC3" ); then
+                    #echo "Found $FAVORITE_LANGUAGE and AC3"
+                    T1=${TRACK_INFO_ELEMENT[0]}
+                fi
+            fi
+        fi
+    done
+    #Store the original duration in Munites
+    DURATION_ORIGINE=${SCAN_RESULT#*+\ duration:\ }
+    DURATION_ORIGINE=${DURATION_ORIGINE%+\ size:*}
+    IFS=':' read -ra DURATION_ORIGINE_LIST <<< "$DURATION_ORIGINE"; unset IFS
+    DURATION_ORIGINE=$(echo "(${DURATION_ORIGINE_LIST[0]}*60)+${DURATION_ORIGINE_LIST[1]}" | bc)
 
-#AUDIO_TRACK_COUNT=$($MEDIAINFO_PATH --Inform="General;%AudioCount%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")
-SCAN_RESULT=$($HANDBRAKECLI_PATH --scan --input "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT" 2>&1)
+    #######ANALAYZE VIDEO MAIN TITLE ######
+    #######################################
+    VIDEO_WIDTH=${SCAN_RESULT#*size:\ }
+    VIDEO_WIDTH=${VIDEO_WIDTH%,\ pixel\ aspect:*}
+    VIDEO_WIDTH=${VIDEO_WIDTH%x*}
 
-AUDIO_TRACK_LIST=${SCAN_RESULT#*+\ audio\ tracks:}
-AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST%+\ subtitle\ tracks:*}
-AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST// /} # replace " " with ""
-AUDIO_TRACK_COUNT=0
+    VIDEO_HEIGHT=${SCAN_RESULT#*size:\ }
+    VIDEO_HEIGHT=${VIDEO_HEIGHT%,\ pixel\ aspect:*}
+    VIDEO_HEIGHT=${VIDEO_HEIGHT#*x}
+
+    #Control of if MAXHEIGHT if touch
+    if [ $VIDEO_HEIGHT -gt $MAXHEIGHT ]; then
+        echo "VIDEO_HEIGHT=$VIDEO_HEIGHT it will be resize to VIDEO_HEIGHT=$MAXHEIGHT"
+        VIDEO_HEIGHT=$MAXHEIGHT
+        VIDEO_WIDTH=$(echo "($VIDEO_HEIGHT*16/9)" | bc)
+    fi
+fi
+
+#######AUDIO TRACKS MANAGEMENT######
+####################################
+AUDIO_TRACK_COUNT=1
 for I in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
-    echo $I
-    
-    ((AUDIO_TRACK_COUNT++))
+#echo $I
+        if $(echo $I | grep "AC3" | grep -q "2.0"); then
+                AUDIO_ARG=$T1
+                AUDIO_ENCODER_ARG="av_aac"
+                AUDIO_BITRATE_ARG="128"
+                AUDIO_SAMPLERATE_ARG="44.1"
+                AUDIO_MIXDOWN_ARG="dpl2"
+        elif $(echo $I | grep "AC3" | grep -q "5.1") || $(echo $I | grep "AC3" | grep -q "6.1"); then
+                AUDIO_ARG="$T1"
+                AUDIO_ENCODER_ARG="av_aac"
+                AUDIO_BITRATE_ARG="128"
+                AUDIO_SAMPLERATE_ARG="44.1"
+                AUDIO_MIXDOWN_ARG="dpl2"
 
+                AUDIO_ARG="$AUDIO_ARG,$T1"
+                AUDIO_ENCODER_ARG="$AUDIO_ENCODER_ARG,copy:ac3"
+                AUDIO_BITRATE_ARG="$AUDIO_BITRATE_ARG,auto"
+                AUDIO_SAMPLERATE_ARG="$AUDIO_SAMPLERATE_ARG,auto"
+                AUDIO_MIXDOWN_ARG="$AUDIO_MIXDOWN_ARG,none"
+        else
+                AUDIO_ARG="$T1"
+                AUDIO_ENCODER_ARG="av_aac"
+                AUDIO_BITRATE_ARG="128"
+                AUDIO_SAMPLERATE_ARG="44.1"
+                AUDIO_MIXDOWN_ARG="dpl2"
+        fi
+    ((AUDIO_TRACK_COUNT++))
 done
 
 #echo "it have $AUDIO_TRACK_COUNT tracks"
 #exit
 
-#AUDIO_TRACK_COUNT=number of audio tracks present in source file
-#-a or --audio 1,1
-#Read all values into arrays
-AUDIO_BITRATE="$($MEDIAINFO_PATH --Inform="Audio;:%BitRate%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")"
-IFS=':' read -ra ARBITR <<< "$AUDIO_BITRATE"
-AUDIO_LANGUAGE="$($MEDIAINFO_PATH --Inform="Audio;:%Language/String%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")"
-IFS=':' read -ra ARLANG <<< "$AUDIO_LANGUAGE"
-AUDIO_CHANNELS="$($MEDIAINFO_PATH --Inform="Audio;:%Channel(s)%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")"
-IFS=':' read -ra ARCHAN <<< "$AUDIO_CHANNELS"
-#Finished building arrays
 
-#By default the Media Audio Track number 1 is use 
-T1=1
-for (( I=1; I <= "$AUDIO_TRACK_COUNT"; I++ )); do
-    #In case of multi audio track it Detect if FAVORITE_LANGUAGE can be put on Track number 1
-    if [ "$FAVORITE_LANGUAGE" == "${ARLANG[$I]}" ]; then
-        T1=$I
-    fi
-done
-#If the Track 1 or Language found , have more as 2 audio channels like 5.1 a second channel will be creat with all in copy inside
-#The frist audio channel is everytime re-encoded
-if [ ${ARCHAN[$T1]} -gt 2 ]; then
-    #--audio
-    AUDIO_ARG="$T1,$T1"
-    #-E or --aencoder
-    AUDIO_ENCODER_ARG="av_aac,copy:*"
-    AUDIO_SAMPLERATE_ARG="44.1,auto"
-    #-R or --arate
-    AUDIO_BITRATE_ARG="128,$((${ARBITR[$T1]}/1000))"
-    #-6 or --mixdown
-    AUDIO_MIXDOWN_ARG="dpl2,none"
-fi
-if (( ${ARCHAN[$T1]} <= 2)) ; then
-    #--audio
-    AUDIO_ARG="$T1"
-    #-E or --aencoder
-    AUDIO_ENCODER_ARG="av_aac"
-    AUDIO_SAMPLERATE_ARG="44.1"
-    #-R or --arate
-    AUDIO_BITRATE_ARG="128"
-    #-6 or --mixdown
-    AUDIO_MIXDOWN_ARG="dpl2"
-fi
 
-#######ANALAYZE VIDEO ######
-############################
-
-VIDEO_WIDTH=$(mediainfo --Inform="Video;%Width%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")
-VIDEO_HEIGHT=$(mediainfo --Inform="Video;%Height%" "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT")
-
+####### VIDEO MANAGEMENT ######
+###############################
 # Calcul of the bit rate, hooooo magic !
 #BIT*(pixel/frame)
-VIDEO_FPS="25"
 BPF=0.082
+VIDEO_FPS="25"
 VIDEO_BITRATE=$(echo "((($VIDEO_WIDTH*$VIDEO_HEIGHT)*$VIDEO_FPS)*$BPF)/1000" | bc)
 
-#Apply different template by Resolution Type
+#Apply different template by Resolution Type.
+#echo "Call optimal_res $VIDEO_WIDTH"
 VIDEO_RESOLUTION=$(optimal_res $VIDEO_WIDTH)
 if [ $VIDEO_RESOLUTION == "1080" ]; then
     VIDEO_RES_TXT="1080p, 1920x1080, 2.07 megapixels, Full HD"
@@ -216,7 +226,7 @@ if [ $VIDEO_RESOLUTION == "720" ]; then
     VIDEO_RES_TXT="720p, 1280x720, 0.92 megapixels, HD"
     X264_PRESET="slow"
     H264_PROFILE="high"
-    H264_LEVEL="3.1"
+    H264_LEVEL="4.1"
 fi
 if [ $VIDEO_RESOLUTION == "576" ]; then
     VIDEO_RES_TXT="576p, 1024x576, 0.59 megapixels, PAL widescreen"
@@ -251,10 +261,9 @@ fi
 
 #### PRINT A SUMMARY ####
 #########################
-echo "There are $AUDIO_TRACK_COUNT audio tracks:"
 if [ $AUDIO_TRACK_COUNT -gt 1 ]; then
-    for (( I=1; I <= "$AUDIO_TRACK_COUNT"; I++ )); do
-        echo "Track $I: ${ARLANG[$I]}, ${ARCHAN[$I]}"
+    for I in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
+        echo $I
     done
 fi
 echo "It will be reoganize as:"
@@ -293,8 +302,9 @@ HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --arate $AUDIO_SAMPLERATE_ARG"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --drc 0.0,0.0"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-copy-mask aac,ac3,dtshd,dts,mp3"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-fallback ffac3"
+HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --normalize-mix 1"
 #Picture Settings
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --loose-anamorphic --modulus 2"
+HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --maxHeight $VIDEO_HEIGHT --loose-anamorphic --modulus 2"
 #Filters
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --deinterlace 2"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --decomb"
@@ -316,8 +326,11 @@ if [ $? != 0 ]; then
 else
     if [ -f "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_TARGET_EXT" ]; then
         echo "Compare movies general duration"
-        DURATION_ORIGINE=`expr $($MEDIAINFO_PATH --Inform='General;%Duration%' "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT" | cut -d '.' -f1) / 1000 / 60`
-        DURATION_ENCODED=`expr $($MEDIAINFO_PATH --Inform='General;%Duration%' "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_TARGET_EXT" | cut -d '.' -f1) / 1000 / 60`
+        END_FILE_SCAN_RESULT=$($HANDBRAKECLI_PATH --scan --main-feature --input "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_TARGET_EXT" 2>&1)
+        DURATION_ENCODED=${END_FILE_SCAN_RESULT#*+\ duration:\ }
+        DURATION_ENCODED=${DURATION_ENCODED%+\ size:*}
+        IFS=':' read -ra DURATION_ENCODED_LIST <<< "$DURATION_ENCODED"; unset IFS
+        DURATION_ENCODED=$(echo "(${DURATION_ENCODED_LIST[0]}*60)+${DURATION_ENCODED_LIST[1]}" | bc)
         echo "Origin video duration: $DURATION_ORIGINE minutes ; Encoded video duration: $DURATION_ENCODED minutes"
         if [ $DURATION_ORIGINE -eq $DURATION_ENCODED ]; then
             #That a good news with they checks we are sure about the Transcoding have work
