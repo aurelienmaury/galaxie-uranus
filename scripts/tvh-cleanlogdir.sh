@@ -36,7 +36,7 @@ if [ -d "$LOGDIR" ]; then
             WORKINGDIR=`dirname "$VIDEO_FILENAME"`
             if [ ! $VIDEO_FILENAME_EXT = $TARGET_EXT ]; then
                 if [ -f $VIDEO_FILENAME ]; then
-                    if [ $TASK_SPOOLER_PATH ]; then
+                    if [ ! $TASK_SPOOLER_PATH ]; then
                         #echo "$TASK_SPOOLER_PATH $SCRIPTORUN $VIDEO_FILENAME"
                         $TASK_SPOOLER_PATH $SCRIPTORUN $VIDEO_FILENAME
                     else

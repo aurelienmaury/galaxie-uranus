@@ -5,13 +5,38 @@
 
 #IT SCRIPT HAVE FINAL TARGET AS 16:9 Format Ratio
 
+#######################################
 ######DEFINE SOME BASIC VARIABLES######
 #######################################
 SCRIPTNAME="tvh-transcoder.sh"
-VERION="0.4"
+VERION="0.5"
 
-######HANDBRAKECLI CHECK######
-###########################
+#######################################
+###          User Settings          ###
+#######################################
+FAVORITE_LANGUAGE="Francais"
+VIDEO_TARGET_EXT="mkv"
+X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:vbv-maxrate=24000"
+VIDEO_FPS="25"
+
+#Choose a MAX HEIGHT.
+# 576p  DVD PAL  16:9
+# 720p  HD Ready 16:9
+# 1080p Full HD  16:9
+# 2160p UHDTV1   16:9
+# 4320p UHDTV2   16:9
+
+#MAX_HEIGHT=576
+MAX_HEIGHT=720
+#MAX_HEIGHT=1080
+#MAX_HEIGHT=2160
+#MAX_HEIGHT=4320
+
+#######################################
+###         Core Script Area        ###
+#######################################
+######     HANDBRAKECLI CHECK    ######
+#######################################
 HANDBRAKECLI_PATH=`which HandBrakeCLI`
 if [ ! $HANDBRAKECLI_PATH ]; then
     echo "HandBrakeCLI is require,\`which HandBrakeCLI\` return nothing"
@@ -55,25 +80,6 @@ VIDEO_FILENAME_EXT=${VIDEO_FILENAME##*.}
 VIDEO_SHORTNAME="`basename "$VIDEO_FILENAME" ".$VIDEO_FILENAME_EXT"`"
 WORKINGDIR=`dirname "$VIDEO_FILENAME"`
 
-######DEFINE SOME BASIC VARIABLES######
-#######################################
-FAVORITE_LANGUAGE="Francais"
-VIDEO_TARGET_EXT="mkv"
-#X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:vbv_maxrate=24000:vbv_bufsize=24000:nal_hrd=none:vbv-bufsize=24000:vbv-maxrate=24000:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2"
-X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:vbv-maxrate=24000"
-VIDEO_FPS="25"
-#Choose you MAX HEIGHT , what you accept as maxium on you media library.
-#No video will be encode for more as it parameter
-# * DVD PAL 16:9 (Are you looking for the future ?)
-#MAX_HEIGHT=576
-# * HD Ready 16:9 (It's OK for a home usage)
-MAX_HEIGHT=720
-# * Full HD 16:9 (If you have the hard drive) why not ...
-#MAX_HEIGHT=1080
-# * UHDTV1 4K 16:9 (A joke ?)
-#MAX_HEIGHT=2160
-# * UHDTV2 8K 16:9 (A joke ?)
-#MAX_HEIGHT=4320
 
 ######USUAL FONCTION######
 ##########################
@@ -136,27 +142,27 @@ else
     AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST%+\ subtitle\ tracks:*}
     AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST// /} # replace " " with ""
 
+    #By default
     T1=1
     AUDIO_TRACK_COUNT=1
+    #Search of FAVORITE_LANGUAGE
     for TRACK_INFO in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
-        IFS=',' read -ra TRACK_INFO_ELEMENT <<< "$TRACK_INFO"
+        IFS=',' read -ra TRACK_INFO_ELEMENT <<< "$TRACK_INFO"; unset IFS
         #DEBUG for control the list
         #for index in "${!TRACK_INFO_ELEMENT[@]}"; do  
             #echo "$index ${TRACK_INFO_ELEMENT[index]}"
         #done
-        unset IFS
-        #IF tat the tack number 1
+        
+        #IF that the tack number 1
         if [ ${TRACK_INFO_ELEMENT[0]} == 1 ]; then
             if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "$FAVORITE_LANGUAGE" ); then
-                #echo "Found $FAVORITE_LANGUAGE"
+                #echo "Found $FAVORITE_LANGUAGE on the track number 1"
                 T1=1
             fi
         else
             if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "$FAVORITE_LANGUAGE" ); then
-                if $(echo ${TRACK_INFO_ELEMENT[1]} | grep -q "AC3" ); then
-                    #echo "Found $FAVORITE_LANGUAGE and AC3"
-                    T1=${TRACK_INFO_ELEMENT[0]}
-                fi
+                #echo "Found $FAVORITE_LANGUAGE on the track number ${TRACK_INFO_ELEMENT[0]}"
+                T1=${TRACK_INFO_ELEMENT[0]}
             fi
         fi
     ((AUDIO_TRACK_COUNT++))
@@ -179,27 +185,26 @@ else
     VIDEO_HEIGHT=${VIDEO_HEIGHT#*x}
 
     #Control of if MAX_HEIGHT if touch
-    if [ $VIDEO_HEIGHT -gt $MAX_HEIGHT ]; then
-        echo "VIDEO_HEIGHT=$VIDEO_HEIGHT it will be resize to VIDEO_HEIGHT=$MAX_HEIGHT"
-        VIDEO_HEIGHT=$MAX_HEIGHT
-        VIDEO_WIDTH=$(echo "($VIDEO_HEIGHT*16/9)" | bc)
+    if [ $VIDEO_HEIGHT ]; then
+        echo "VIDEO_HEIGHT=$VIDEO_HEIGHT MAX=$MAX_HEIGHT"
+        if [ $VIDEO_HEIGHT -gt $MAX_HEIGHT ]; then
+            echo "VIDEO_HEIGHT=$VIDEO_HEIGHT it will be resize to VIDEO_HEIGHT=$MAX_HEIGHT"
+            VIDEO_HEIGHT=$MAX_HEIGHT
+            VIDEO_WIDTH=$(echo "($VIDEO_HEIGHT*16/9)" | bc)
+        else
+            unset MAX_HEIGHT
+        fi
     fi
 fi
 
 #######AUDIO TRACKS MANAGEMENT######
 ####################################
 
-AUDIO_ARG=$T1
-AUDIO_ENCODER_ARG="faac"
-AUDIO_BITRATE_ARG="160"
-AUDIO_SAMPLERATE_ARG="Auto"
-AUDIO_MIXDOWN_ARG="dpl2"
-
-AUDIO_ARG="$AUDIO_ARG,$T1"
-AUDIO_ENCODER_ARG="$AUDIO_ENCODER_ARG,copy:ac3"
-AUDIO_BITRATE_ARG="$AUDIO_BITRATE_ARG,160"
-AUDIO_SAMPLERATE_ARG="$AUDIO_SAMPLERATE_ARG,Auto"
-AUDIO_MIXDOWN_ARG="$AUDIO_MIXDOWN_ARG,none"
+AUDIO_ARG="$T1,$T1"
+AUDIO_ENCODER_ARG="faac,copy:ac3"
+AUDIO_BITRATE_ARG="128,Auto"
+AUDIO_SAMPLERATE_ARG="44.1,Auto"
+AUDIO_MIXDOWN_ARG="dpl2,none"
 
 ####### VIDEO MANAGEMENT ######
 ###############################
@@ -316,11 +321,14 @@ HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --ab $AUDIO_BITRATE_ARG"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --mixdown $AUDIO_MIXDOWN_ARG"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --arate $AUDIO_SAMPLERATE_ARG"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --drc 0.0,0.0"
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-copy-mask aac,ac3,dtshd,dts,mp3"
+HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-copy-mask aac,ac3,dtshd,dts"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-fallback ffac3"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --normalize-mix 1"
 #Picture Settings
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --maxHeight $VIDEO_HEIGHT --strict-anamorphic"
+if [ $MAX_HEIGHT ]; then
+    HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --maxHeight $VIDEO_HEIGHT"
+fi
+HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --loose-anamorphic --modulus 2"
 #Filters
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --decomb"
 
