@@ -3,6 +3,8 @@
 # It script it publish on GNU GENERAL PUBLIC LICENSE
 #http://www.gnu.org/licenses/gpl-3.0.en.html
 
+#IT SCRIPT HAVE FINAL TARGET AS 16:9 Format Ratio
+
 ######DEFINE SOME BASIC VARIABLES######
 #######################################
 SCRIPTNAME="tvh-transcoder.sh"
@@ -20,23 +22,30 @@ fi
 
 ######Check if a parameter is all ready present######
 #####################################################
-if [ $# -eq 0 ]; then
-    echo "Please, invoke it script with patern you searching for"
-    echo "Exemple: $SCRIPTNAME ./Hangar-1-_-les-dossiers-ovni.E08.Les-points-chauds-de-l_Am__rique.ts"
-    exit 1
-fi
-if [ ! "$1" ]; then
-    echo "Please, invoke it script with patern you searching for"
-    echo "Exemple: $SCRIPTNAME ./Hangar-1-_-les-dossiers-ovni.E08.Les-points-chauds-de-l_Am__rique.ts"
+if ( [ ! "$1" ] || [ $# -eq 0 ] ); then
+    echo "$SCRIPTNAME Version: $VERION"
+    echo "Please, invoke it script with the path of a movie"
+    echo "Fews Exemples: "
+    echo "./$SCRIPTNAME ./my_super_movie.ts"
+    echo "./$SCRIPTNAME ../a/other/directory/my_super_movie.ts"
+    echo "./$SCRIPTNAME /full/path/to/the/directory/my_super_movie.ts"
+    echo "./$SCRIPTNAME \"/full/path/to/the/directory/With space name.ts\""
     exit 1
 fi
 
 ######SOURCE FILE CHECK######
 ############################
 if [ ! -f "$1" ]; then
+    echo "$SCRIPTNAME Version: $VERION"
     #source file does not exist
     echo "Error: Source file not found "
     echo "Maybe wrong path or missing permissions?"
+    echo "Please, invoke it script with the path of a movie"
+    echo "Fews Exemples: "
+    echo "./$SCRIPTNAME ./my_super_movie.ts"
+    echo "./$SCRIPTNAME ../a/other/directory/my_super_movie.ts"
+    echo "./$SCRIPTNAME /full/path/to/the/directory/my_super_movie.ts"
+    echo "./$SCRIPTNAME \"/full/path/to/the/directory/With space name.ts\""
     exit 1
 fi
 
@@ -50,10 +59,21 @@ WORKINGDIR=`dirname "$VIDEO_FILENAME"`
 #######################################
 FAVORITE_LANGUAGE="Francais"
 VIDEO_TARGET_EXT="mkv"
-X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:vbv_maxrate=24000:vbv_bufsize=24000:nal_hrd=none:vbv-bufsize=24000:vbv-maxrate=24000:fast_pskip=0:decimate=1:bframes=6:direct=auto:weightb=1:weightp=2"
-
-MAXHEIGHT=720
-#MAXHEIGHT=1080
+#X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:vbv_maxrate=24000:vbv_bufsize=24000:nal_hrd=none:vbv-bufsize=24000:vbv-maxrate=24000:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2"
+X264_OPTS="open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:vbv-maxrate=24000"
+VIDEO_FPS="25"
+#Choose you MAX HEIGHT , what you accept as maxium on you media library.
+#No video will be encode for more as it parameter
+# * DVD PAL 16:9 (Are you looking for the future ?)
+#MAX_HEIGHT=576
+# * HD Ready 16:9 (It's OK for a home usage)
+MAX_HEIGHT=720
+# * Full HD 16:9 (If you have the hard drive) why not ...
+#MAX_HEIGHT=1080
+# * UHDTV1 4K 16:9 (A joke ?)
+#MAX_HEIGHT=2160
+# * UHDTV2 8K 16:9 (A joke ?)
+#MAX_HEIGHT=4320
 
 ######USUAL FONCTION######
 ##########################
@@ -65,6 +85,8 @@ function optimal_res() {
     RESOLUTIONS[4]=1024
     RESOLUTIONS[5]=1280
     RESOLUTIONS[6]=1920
+    RESOLUTIONS[7]=3840
+    RESOLUTIONS[8]=7680
 
     NAMES[0]=240
     NAMES[1]=360
@@ -73,6 +95,8 @@ function optimal_res() {
     NAMES[4]=576
     NAMES[5]=720
     NAMES[6]=1080
+    NAMES[7]=2160
+    NAMES[8]=4320
 
     WIDTH=$1
     BEST_GUESS=-1
@@ -81,19 +105,12 @@ function optimal_res() {
     MAX=${#RESOLUTIONS[@]}
 
     while [ "$BEST_GUESS" -ne "$INDEX" ]; do
-
         if [ "$INDEX" -lt "$((MAX - 1))" ]; then
-
             RES_GAP=$(( ${RESOLUTIONS[$(( $INDEX + 1 ))]} - ${RESOLUTIONS[$INDEX]} ))
-
             STEP_THRESHOLD=$(( $RES_GAP / 2 ))
-
             CUR_RES=${RESOLUTIONS[$INDEX]}
-
             WIDTH_GAP=$(( $WIDTH - $CUR_RES ))
-
             BEST_GUESS=$INDEX
-
             if [ "$WIDTH_GAP" -gt "$STEP_THRESHOLD" ]; then
                 INDEX=$(( $INDEX + 1 ))
             fi
@@ -101,7 +118,6 @@ function optimal_res() {
             BEST_GUESS=$INDEX
         fi
     done
-
     echo "${NAMES[$BEST_GUESS]}"
 }
 
@@ -121,6 +137,7 @@ else
     AUDIO_TRACK_LIST=${AUDIO_TRACK_LIST// /} # replace " " with ""
 
     T1=1
+    AUDIO_TRACK_COUNT=1
     for TRACK_INFO in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
         IFS=',' read -ra TRACK_INFO_ELEMENT <<< "$TRACK_INFO"
         #DEBUG for control the list
@@ -142,7 +159,9 @@ else
                 fi
             fi
         fi
+    ((AUDIO_TRACK_COUNT++))
     done
+
     #Store the original duration in Munites
     DURATION_ORIGINE=${SCAN_RESULT#*+\ duration:\ }
     DURATION_ORIGINE=${DURATION_ORIGINE%+\ size:*}
@@ -159,105 +178,102 @@ else
     VIDEO_HEIGHT=${VIDEO_HEIGHT%,\ pixel\ aspect:*}
     VIDEO_HEIGHT=${VIDEO_HEIGHT#*x}
 
-    #Control of if MAXHEIGHT if touch
-    if [ $VIDEO_HEIGHT -gt $MAXHEIGHT ]; then
-        echo "VIDEO_HEIGHT=$VIDEO_HEIGHT it will be resize to VIDEO_HEIGHT=$MAXHEIGHT"
-        VIDEO_HEIGHT=$MAXHEIGHT
+    #Control of if MAX_HEIGHT if touch
+    if [ $VIDEO_HEIGHT -gt $MAX_HEIGHT ]; then
+        echo "VIDEO_HEIGHT=$VIDEO_HEIGHT it will be resize to VIDEO_HEIGHT=$MAX_HEIGHT"
+        VIDEO_HEIGHT=$MAX_HEIGHT
         VIDEO_WIDTH=$(echo "($VIDEO_HEIGHT*16/9)" | bc)
     fi
 fi
 
 #######AUDIO TRACKS MANAGEMENT######
 ####################################
-AUDIO_TRACK_COUNT=1
-for I in $(echo $AUDIO_TRACK_LIST | sed -e 's/+/\n/g'); do
-#echo $I
-        if $(echo $I | grep "AC3" | grep -q "2.0"); then
-                AUDIO_ARG=$T1
-                AUDIO_ENCODER_ARG="av_aac"
-                AUDIO_BITRATE_ARG="128"
-                AUDIO_SAMPLERATE_ARG="44.1"
-                AUDIO_MIXDOWN_ARG="dpl2"
-        elif $(echo $I | grep "AC3" | grep -q "5.1") || $(echo $I | grep "AC3" | grep -q "6.1"); then
-                AUDIO_ARG="$T1"
-                AUDIO_ENCODER_ARG="av_aac"
-                AUDIO_BITRATE_ARG="128"
-                AUDIO_SAMPLERATE_ARG="44.1"
-                AUDIO_MIXDOWN_ARG="dpl2"
 
-                AUDIO_ARG="$AUDIO_ARG,$T1"
-                AUDIO_ENCODER_ARG="$AUDIO_ENCODER_ARG,copy:ac3"
-                AUDIO_BITRATE_ARG="$AUDIO_BITRATE_ARG,auto"
-                AUDIO_SAMPLERATE_ARG="$AUDIO_SAMPLERATE_ARG,auto"
-                AUDIO_MIXDOWN_ARG="$AUDIO_MIXDOWN_ARG,none"
-        else
-                AUDIO_ARG="$T1"
-                AUDIO_ENCODER_ARG="av_aac"
-                AUDIO_BITRATE_ARG="128"
-                AUDIO_SAMPLERATE_ARG="44.1"
-                AUDIO_MIXDOWN_ARG="dpl2"
-        fi
-    ((AUDIO_TRACK_COUNT++))
-done
+AUDIO_ARG=$T1
+AUDIO_ENCODER_ARG="faac"
+AUDIO_BITRATE_ARG="160"
+AUDIO_SAMPLERATE_ARG="Auto"
+AUDIO_MIXDOWN_ARG="dpl2"
 
-#echo "it have $AUDIO_TRACK_COUNT tracks"
-#exit
-
-
+AUDIO_ARG="$AUDIO_ARG,$T1"
+AUDIO_ENCODER_ARG="$AUDIO_ENCODER_ARG,copy:ac3"
+AUDIO_BITRATE_ARG="$AUDIO_BITRATE_ARG,160"
+AUDIO_SAMPLERATE_ARG="$AUDIO_SAMPLERATE_ARG,Auto"
+AUDIO_MIXDOWN_ARG="$AUDIO_MIXDOWN_ARG,none"
 
 ####### VIDEO MANAGEMENT ######
 ###############################
-# Calcul of the bit rate, hooooo magic !
-#BIT*(pixel/frame)
-BPF=0.082
-VIDEO_FPS="25"
-VIDEO_BITRATE=$(echo "((($VIDEO_WIDTH*$VIDEO_HEIGHT)*$VIDEO_FPS)*$BPF)/1000" | bc)
 
 #Apply different template by Resolution Type.
 #echo "Call optimal_res $VIDEO_WIDTH"
 VIDEO_RESOLUTION=$(optimal_res $VIDEO_WIDTH)
+if [ $VIDEO_RESOLUTION == "4320" ]; then
+    BPF=0.020
+    VIDEO_RES_TXT="4320p, 7680×4320, 33.18 megapixels, UHDTV2 or 8K"
+    X264_PRESET="slower"
+    H264_PROFILE="high"
+    H264_LEVEL="5.1"
+fi
+if [ $VIDEO_RESOLUTION == "2160" ]; then
+    BPF=0.040
+    VIDEO_RES_TXT="2160p, 3840×2160, 8.00 megapixels, UHDTV1 or 4K"
+    X264_PRESET="slower"
+    H264_PROFILE="high"
+    H264_LEVEL="5.1"
+fi
 if [ $VIDEO_RESOLUTION == "1080" ]; then
+    BPF=0.066
     VIDEO_RES_TXT="1080p, 1920x1080, 2.07 megapixels, Full HD"
-    X264_PRESET="slow"
+    X264_PRESET="slower"
     H264_PROFILE="high"
     H264_LEVEL="4.1"
 fi
 if [ $VIDEO_RESOLUTION == "720" ]; then
+    BPF=0.082
     VIDEO_RES_TXT="720p, 1280x720, 0.92 megapixels, HD"
     X264_PRESET="slow"
     H264_PROFILE="high"
     H264_LEVEL="4.1"
 fi
 if [ $VIDEO_RESOLUTION == "576" ]; then
+    BPF=0.082
     VIDEO_RES_TXT="576p, 1024x576, 0.59 megapixels, PAL widescreen"
-    X264_PRESET="medium"
+    X264_PRESET="slow"
     H264_PROFILE="high"
     H264_LEVEL="3.1" 
 fi
 if [ $VIDEO_RESOLUTION == "480" ]; then
+    BPF=0.100
     VIDEO_RES_TXT="480p, 848x480, 0.41 megapixels, NTSC widescreen"
     X264_PRESET="medium"
     H264_PROFILE="main"
     H264_LEVEL="3.1"
 fi
 if [ $VIDEO_RESOLUTION == "432" ]; then
+    BPF=0.100
     VIDEO_RES_TXT="432p, 768x432, 0.33 megapixels"
     X264_PRESET="fast"
     H264_PROFILE="main"
     H264_LEVEL="3.1"
 fi
 if [ $VIDEO_RESOLUTION == "360" ]; then
+    BPF=0.125
     VIDEO_RES_TXT="360p, 640x360, 0.23 megapixels"
     X264_PRESET="fast"
     H264_PROFILE="baseline"
     H264_LEVEL="3.1"
 fi
 if [ $VIDEO_RESOLUTION == "240" ]; then
+    BPF=0.150
     VIDEO_RES_TXT="240p, 424x240, 0.10 megapixels"
     X264_PRESET="fast"
     H264_PROFILE="baseline"
     H264_LEVEL="3.0"
 fi
+#Default BIT*(pixel/frame)
+#BPF=0.082
+# Calcul of the bit rate, hooooo magic !
+VIDEO_BITRATE=$(echo "((($VIDEO_WIDTH*$VIDEO_HEIGHT)*$VIDEO_FPS)*$BPF)/1000" | bc)
 
 #### PRINT A SUMMARY ####
 #########################
@@ -304,16 +320,15 @@ HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-copy-mask aac,ac3,dtshd,dts,mp3"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --audio-fallback ffac3"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --normalize-mix 1"
 #Picture Settings
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --maxHeight $VIDEO_HEIGHT --loose-anamorphic --modulus 2"
+HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --maxHeight $VIDEO_HEIGHT --strict-anamorphic"
 #Filters
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --deinterlace 2"
 HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --decomb"
-HANDBRAKE_ARGVS="$HANDBRAKE_ARGVS --detelecine"
+
 
 #### Execute the HandBrakeCLI commande line ####
 ################################################
 echo "$HANDBRAKECLI_PATH $HANDBRAKE_ARGVS --input \"$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT\" --output \"$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_TARGET_EXT\""
-
+#exit
 time "$HANDBRAKECLI_PATH" $HANDBRAKE_ARGVS \
     --input "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_FILENAME_EXT" \
     --output "$WORKINGDIR/$VIDEO_SHORTNAME.$VIDEO_TARGET_EXT" \

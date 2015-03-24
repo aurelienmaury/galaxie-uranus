@@ -44,6 +44,13 @@ if [ ! $MEDIAINFO_PATH ]; then
     exit 1
 fi
 
+COMSKIP_PATH=`which comskip`
+if [ ! $COMSKIP_PATH ]; then
+    echo "Comskip should be install,\`which comskip\` return nothing"
+    echo " Please consider to install \"comskip\" for enable comercial detection"
+    echo " $SCRIPTNAME will continue without commercial skip..."
+    exit 1
+fi
 
 
 #The script must accept a parameter for the full path of the video to encode
@@ -98,23 +105,24 @@ if [ -d "$LOGDIR" ]; then
 
                             echo "Update TVHeadend Log file ..."
                             sed -i.bak "s/$TBR.$VIDEO_FILENAME_EXT/$TBR.$TARGET_EXT/g" $LOGFILE && rm -f "$LOGFILE.bak"
-                            
-                            #Copy the encoded file inside $HTSHOME/Transcode/ for permit future thing
-                            if [ ! -d "$HTSHOME/Transcode/$TBR" ]; then
-                                mkdir -p "$HTSHOME/Transcode/$TBR"
+                            if [ $COMSKIP_PATH ]; then
+                                #Copy the encoded file inside $HTSHOME/Transcode/ for permit future thing
+                                if [ ! -d "$HTSHOME/Transcode/$TBR" ]; then
+                                    mkdir -p "$HTSHOME/Transcode/$TBR"
+                                fi
+                                if [ $RSYNC_PATH ]; then
+                                    echo "Rsync $TBR.$TARGET_EXT to $HTSHOME/Transcode/$TBR/ for future comskip"
+                                    $RSYNC_PATH -P -av "$WORKINGDIR/$TBR.$TARGET_EXT" "$HTSHOME/Transcode/$TBR/"
+                                else
+                                    echo "Copy $TBR.$TARGET_EXT to $HTSHOME/Transcode/$TBR/ for future comskip"
+                                    cp "$WORKINGDIR/$TBR.$TARGET_EXT" "$HTSHOME/Transcode/$TBR/"
+                                fi
+                                $COMSKIP_PATH "$HTSHOME/Transcode/$TBR/$TBR.$TARGET_EXT"
                             fi
-                            if [ $RSYNC_PATH ]; then
-                                echo "Rsync $TBR.$TARGET_EXT to $HTSHOME/Transcode/$TBR/ for future comskip"
-                                $RSYNC_PATH -P -av "$WORKINGDIR/$TBR.$TARGET_EXT" "$HTSHOME/Transcode/$TBR/"
-                            else
-                                echo "Copy $TBR.$TARGET_EXT to $HTSHOME/Transcode/$TBR/ for future comskip"
-                                cp "$WORKINGDIR/$TBR.$TARGET_EXT" "$HTSHOME/Transcode/$TBR/"
-                            fi
-
                             # Here we are 99.9% sure about the original .ts file is not require anymore
                             echo "Remove original mpeg2 .ts file"
                             rm $VIDEO_FILENAME
-
+                            rm $WORKINGDIR/$TBR.log
                         else
                             echo "Error: Source file and encoded file haven't the same duration..."
                             echo " The programm will abort..."

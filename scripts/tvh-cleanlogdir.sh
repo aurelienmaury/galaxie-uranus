@@ -19,6 +19,13 @@ LOGDIR="$HTSHOME/.hts/tvheadend/dvr/log/"
 TARGET_EXT='mkv'
 SCRIPTORUN="$HTSHOME/Transcode/tvh-cleanlogfiles.sh"
 
+TASK_SPOOLER_PATH=`which tsp`
+if [ ! $TASK_SPOOLER_PATH ]; then
+    echo "Task Spooler is welcome,\`which tsp\` return nothing"
+    echo " Please consider to install \"tsp\" or verify it is aviable on your \$PATH env var"
+    echo " $SCRIPTNAME will continue and not use a Task SPooler..."
+    exit 1
+fi
 # Verify TVHeadend Log dir exist
 if [ -d "$LOGDIR" ]; then
     # Parse each files contain inside Log dir
@@ -29,8 +36,13 @@ if [ -d "$LOGDIR" ]; then
             WORKINGDIR=`dirname "$VIDEO_FILENAME"`
             if [ ! $VIDEO_FILENAME_EXT = $TARGET_EXT ]; then
                 if [ -f $VIDEO_FILENAME ]; then
-                    #echo "$SCRIPTORUN $VIDEO_FILENAME"
-                    $SCRIPTORUN $VIDEO_FILENAME
+                    if [ $TASK_SPOOLER_PATH ]; then
+                        #echo "$TASK_SPOOLER_PATH $SCRIPTORUN $VIDEO_FILENAME"
+                        $TASK_SPOOLER_PATH $SCRIPTORUN $VIDEO_FILENAME
+                    else
+                        #echo "$SCRIPTORUN $VIDEO_FILENAME"
+                        $SCRIPTORUN $VIDEO_FILENAME
+                    fi
                 else
                     #echo "$LOGFILE have reference for:"
                     #echo "but $VIDEO_FILENAME don't exist"
