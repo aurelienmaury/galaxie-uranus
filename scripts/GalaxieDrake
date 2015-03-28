@@ -1,0 +1,205 @@
+#! /usr/bin/python
+                     
+import curses
+import traceback
+
+def display_top_menu():
+    num_lines,num_cols = screen.getmaxyx()
+    screen.addstr(0,0,str(" " * int(num_cols)),curses.color_pair(1))
+    top_menu_chain = "GalaxieDrake"
+    screen.addstr(0,0,str(top_menu_chain),curses.color_pair(1))
+
+def display_help_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Help")
+
+def display_source_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Source")
+
+def display_summary_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Summary")
+
+def display_video_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Video")
+
+def display_audio_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Audio")
+
+def display_quit_box():
+    num_lines,num_cols = screen.getmaxyx()
+    summary_box=screen.subwin(num_lines-3,0,1,0)
+    summary_box.box()
+    summary_box.addstr(0,1,"Quit")
+    quit_box=screen.subwin(num_lines-10, num_cols-10, 0, 0)
+    quit_box.box()
+
+def display_message(message):
+    num_lines,num_cols = screen.getmaxyx()
+    message_chain = str(message)
+    spacing=num_cols - len(message_chain)
+    #screen.addstr(num_lines-2,1,str(" " * int(num_cols)))
+    screen.addstr(num_lines-2,1,str(message_chain))
+    screen.refresh()
+
+def display_bottom_button(item_list):
+    #item_list=("Help" "Source" "Summary" "Video" "Audio" "Subtitles" "Chapter" "Tags" "Encode" "Quit")
+    max_button_number=10
+    req_button_number=len(item_list)
+    if req_button_number > max_button_number:
+        req_button_number=max_button_number
+    min_button_size=7
+    num_lines,num_cols= screen.getmaxyx()
+
+
+    #Div the cols by the number of button it have to be creat
+    aviable_per_item=int(num_cols / req_button_number)
+    #Remove the "F10" label space + 1 char for the button use by the button
+    aviable_per_item=int(aviable_per_item - 3)
+    
+    #Size Bug it crash about display size, by reduse the number of button it can be display
+    max_can_be_display = 1
+    for I in range(1,req_button_number+1):
+        cumul= 0
+        for U in range(0,max_can_be_display):
+            cumul= cumul + len(str(item_list[U]))
+        if num_cols-1 > cumul+int((3*max_can_be_display)+1):
+            #Put the entire line with curses.color_pair(1))
+            screen.addstr(num_lines-1,0,str(" " * int(num_cols-1)),curses.color_pair(1))
+            max_can_be_display = max_can_be_display+1
+
+        
+    #debug="num_cols="+str(num_cols)+" MERDE="+str(cumul+int((2*max_can_be_display)+1))+" can_be_display="+str(max_can_be_display)
+    #display_message(debug)
+
+
+    screen.addstr(num_lines-1,0,"",curses.color_pair(2))
+    for count in range(0,max_can_be_display-1):
+        if len(str(count+1)) == 2:
+            screen.addstr(str(count+1),curses.color_pair(2))
+            screen.addstr(item_list[count],curses.color_pair(1))
+            spacing = (aviable_per_item - len(item_list[count]) - 1)
+            screen.addstr(str(" " * int(spacing)),curses.color_pair(1))
+        elif len(str(count+1)) == 1:
+            screen.addstr(" ",curses.color_pair(2))
+            screen.addstr(str(count+1),curses.color_pair(2))
+            screen.addstr(item_list[count],curses.color_pair(1))
+            spacing=aviable_per_item - len(item_list[count])
+            screen.addstr(str(" " * int(spacing)),curses.color_pair(1))
+
+    screen.refresh()
+
+def refresh_box():
+    if selected_box==1:
+            display_help_box()
+    elif selected_box==2:
+            display_source_box()
+    elif selected_box==3:
+            display_summary_box()
+    elif selected_box==4:
+            display_video_box()
+    elif selected_box==5:
+            display_audio_box()
+    elif selected_box==10:
+            display_quit_box()
+
+
+def main(stdscr):
+    global screen
+    screen = stdscr
+    screen.refresh()
+
+    global selected_box
+    selected_box=2
+
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_CYAN)
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.curs_set(0)
+    screen.clear()
+    screen.keypad(1)
+
+    display_top_menu()
+    refresh_box()
+    display_message("")
+    display_bottom_button(["Help", "Source", "Summary", "Video", "Audio", "Subtitles", "Chapter", "Tags", "Encode", "Quit"])
+    screen.refresh()
+    while True:
+        event = screen.getch()
+        screen.clear()
+        display_top_menu()
+        refresh_box()
+        display_bottom_button(["Help", "Source", "Summary", "Video", "Audio", "Subtitles", "Chapter", "Tags", "Encode", "Quit"])
+        if event == ord("q"):
+            break
+        elif event == ord("\n"):
+            display_message("The User Pressed ENTER")
+        elif event == ord("\t"):
+            display_message("The User Pressed TAB")
+        elif event == curses.KEY_UP:
+            display_message("The User Pressed UP")
+        elif event == curses.KEY_DOWN:
+            display_message("The User Pressed DOWN")
+        elif event == curses.KEY_RIGHT:
+            display_message("The User Pressed RIGHT")
+        elif event == curses.KEY_LEFT:
+            display_message("The User Pressed LEFT")
+        elif event == curses.KEY_F1:
+            display_message("The User Pressed F1")
+            selected_box=1
+            refresh_box()
+        elif event == curses.KEY_F2:
+            display_message("The User Pressed F2")
+            selected_box=2
+            refresh_box()
+        elif event == curses.KEY_F3:
+            display_message("The User Pressed F3")
+            selected_box=3
+            refresh_box()
+        elif event == curses.KEY_F4:
+            display_message("The User Pressed F4")
+            selected_box=4
+            refresh_box()
+        elif event == curses.KEY_F5:
+            display_message("The User Pressed F5")
+            selected_box=5
+            refresh_box()
+        elif event == curses.KEY_F6:
+            display_message("The User Pressed F6")
+        elif event == curses.KEY_F7:
+            display_message("The User Pressed F7")
+        elif event == curses.KEY_F8:
+            display_message("The User Pressed F8")
+        elif event == curses.KEY_F9:
+            display_message("The User Pressed F9")
+        elif event == curses.KEY_F10:
+            display_message("The User Pressed F10")
+            selected_box=10
+            refresh_box()
+        elif event == curses.KEY_ENTER:
+            display_message("The User Pressed ENTER")
+        elif event == curses.KEY_IC:
+            display_message("The User Pressed IC")
+        else:
+            display_message("")
+            pass
+
+        screen.refresh()
+
+if __name__ == '__main__':
+    try:
+        curses.wrapper(main)
+    except:
+        traceback.print_exc()
