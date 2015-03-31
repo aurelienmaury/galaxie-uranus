@@ -51,82 +51,19 @@ class CursesButton:
         else:
             return 0
 
-
-def display_help_box():
+def display_full_box(title):
     num_lines,num_cols = screen.getmaxyx()
     #Creat a sub window
-    help_box=screen.subwin(num_lines-3,0,1,0)
-    self_num_lines,selft_num_cols = help_box.getmaxyx()
+    full_box = screen.subwin(num_lines-3,0,1,0)
+    self_num_lines,selft_num_cols = full_box.getmaxyx()
     #Put the Background color    
     if curses.has_colors():
         for I in range(1,self_num_lines-1):
-            help_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
-        help_box.bkgdset(ord(' '), curses.color_pair(3))
-    help_box.box()
-    help_box.addstr(0,1,"Help")
-
-    help_box.refresh()
-
-def display_source_box():
-    num_lines,num_cols = screen.getmaxyx()
-    #Creat a sub window
-    source_box=screen.subwin(num_lines-3,0,1,0)
-    self_num_lines,selft_num_cols = source_box.getmaxyx()
-    #Put the Background color    
-    if curses.has_colors():
-        for I in range(1,self_num_lines-1):
-            source_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
-        source_box.bkgdset(ord(' '), curses.color_pair(3))
-    source_box.box()
-    source_box.addstr(0,1,"Source")
-
-    source_box.refresh()
-
-def display_summary_box():
-    num_lines,num_cols = screen.getmaxyx()
-    #Creat a sub window
-    summary_box=screen.subwin(num_lines-3,0,1,0)
-    self_num_lines,selft_num_cols = summary_box.getmaxyx()
-    #Put the Background color    
-    if curses.has_colors():
-        for I in range(1,self_num_lines-1):
-            summary_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
-        summary_box.bkgdset(ord(' '), curses.color_pair(3))
-    summary_box.box()
-    summary_box.addstr(0,1,"Summary")
-
-    summary_box.refresh()
-
-def display_video_box():
-    num_lines,num_cols = screen.getmaxyx()
-    #Creat a sub window
-    video_box=screen.subwin(num_lines-3,0,1,0)
-    self_num_lines,selft_num_cols = video_box.getmaxyx()
-    #Put the Background color    
-    if curses.has_colors():
-        for I in range(1,self_num_lines-1):
-            video_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
-        video_box.bkgdset(ord(' '), curses.color_pair(3))
-    video_box.box()
-    video_box.addstr(0,1,"Video")
-
-    video_box.refresh()
-
-def display_audio_box():
-    num_lines,num_cols = screen.getmaxyx()
-    #Creat a sub window
-    audio_box=screen.subwin(num_lines-3,0,1,0)
-    self_num_lines,selft_num_cols = audio_box.getmaxyx()
-    #Put the Background color    
-    if curses.has_colors():
-        for I in range(1,self_num_lines-1):
-            audio_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
-        audio_box.bkgdset(ord(' '), curses.color_pair(3))
-    audio_box.box()
-    audio_box.addstr(0,1,"Audio")
-
-    audio_box.refresh()
-
+            full_box.addstr(I,1,str(" " * int(selft_num_cols-2)),curses.color_pair(3))
+        full_box.bkgdset(ord(' '), curses.color_pair(3))
+    full_box.box()
+    full_box.addstr(0,1,title)
+    full_box.refresh()
 
 def display_quit_box(window_quit_yesno):
     title_text=model.get_window_quit_title_text()
@@ -301,15 +238,17 @@ class viewer_class():
         curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_CYAN)
 
         self.display_method_by_window = {
-            1:display_help_box,
-            2:display_source_box,
-            3:display_summary_box,
-            4:display_video_box,
-            5:display_audio_box
+            1:lambda : display_full_box("Help"),
+            2:lambda : display_full_box("Source"),
+            3:lambda : display_full_box("Summary"),
+            4:lambda : display_full_box("Video"),
+            5:lambda : display_full_box("Audio"),
         }
 
         self.display_top_menu()
-        display_summary_box()
+
+        self.display_method_by_window[3]()
+        
         #viewer.display_message("")
         display_bottom_button(["Help", "Source", "Summary", "Video", "Audio", "Subtitles", "Chapter", "Tags", "Encode", "Quit"])
         screen.refresh()
