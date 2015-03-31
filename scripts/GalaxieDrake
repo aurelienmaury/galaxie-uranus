@@ -4,7 +4,6 @@ import curses
 import curses.textpad
 import traceback
 
-
 class CursesButton:
     def __init__(self, Window, Y, X, Label, Hotkey=0):
         self.Parent = Window
@@ -54,7 +53,6 @@ class CursesButton:
             return 1
         else:
             return 0
-
 
 def display_quit_box(window_quit_yesno):
     title_text = model.get_window_quit_title_text()
@@ -408,21 +406,16 @@ def controler():
         elif event == curses.KEY_F10:
             model.set_active_window(10)
         elif (Action[:1] == "Y"):
-            message = "The User selected " + Action
-            viewer.display_message(message)
-            model.set_last_message(message)
+            on_message("The User selected " + Action)
             break
         elif (Action[:1] == "N"):
             model.set_window_quit_yesno(1)
             model.set_active_window(3)
-            message = "The User selected " + Action
-            viewer.display_message(message)
-            model.set_last_message(message)
+            on_message("The User selected " + Action)
         else:
             pass
 
         viewer.refresh_screen(model.get_active_window())
-
 
 def main(stdscr):
     global screen
