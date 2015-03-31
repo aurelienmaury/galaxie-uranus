@@ -300,6 +300,13 @@ class viewer_class():
         curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_WHITE)
         curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_CYAN)
 
+        self.display_method_by_window = {
+            1:display_help_box,
+            2:display_source_box,
+            3:display_summary_box,
+            4:display_video_box,
+            5:display_audio_box
+        }
 
         self.display_top_menu()
         display_summary_box()
@@ -309,18 +316,11 @@ class viewer_class():
 
     def refresh_screen(self,active_window_to_display):
         self.display_top_menu()
-        if active_window_to_display==1:
-            display_help_box()
-        elif active_window_to_display==2:
-                display_source_box()
-        elif active_window_to_display==3:
-                display_summary_box()
-        elif active_window_to_display==4:
-                display_video_box()
-        elif active_window_to_display==5:
-                display_audio_box()
-        elif active_window_to_display==10:
-                display_quit_box(model.get_window_quit_yesno())
+
+        if active_window_to_display in self.display_method_by_window:
+            self.display_method_by_window[active_window_to_display]()
+        elif active_window_to_display == 10:
+            display_quit_box(model.get_window_quit_yesno())
 
         self.display_message(str(model.get_last_message()))
 
@@ -355,10 +355,6 @@ class viewer_class():
 ###    THE CONTROLLER    ###
 ############################
 def controler():
-    event_actions = {
-        curses.KEY_RIGHT:yes_no,
-        curses.KEY_LEFT:yes_no
-    }
 
     while True:
         event = screen.getch()
