@@ -13,18 +13,18 @@ class CursesButton:
         self.LabelButton="[ "+Label+" ]"
         self.Label=Label
         self.Width=len(self.LabelButton)+2 # label, plus lines on side
-        self.Underline=model.get_window_button_underline()
+        self.Underline=model.get_windows_button_underline()
         Window.refresh()
     
     def Select(self):
-        Underline=model.get_window_button_underline() 
+        Underline=model.get_windows_button_underline() 
         self.Parent.addstr(self.Y+1,self.X+1,self.LabelButton,curses.color_pair(1))
         self.Parent.addstr(self.Y+1,self.X+self.Underline+1,self.LabelButton[Underline],curses.A_REVERSE|curses.color_pair(3))
         self.Parent.move(self.Y+1,self.X+self.Underline+1)
         self.Selected=1
 
     def UnSelect(self):
-        Underline=model.get_window_button_underline() 
+        Underline=model.get_windows_button_underline() 
         self.Parent.addstr(self.Y+1,self.X+1,self.LabelButton,curses.color_pair(4))
         self.Parent.addstr(self.Y+1,self.X+self.Underline+1,self.LabelButton[Underline],curses.A_REVERSE|curses.color_pair(3))
         self.Selected=0
@@ -128,19 +128,18 @@ def display_audio_box():
     audio_box.refresh()
 
 
-def display_quit_box(quit_yesno):
-    title_text="The Galaxie Drake"
+def display_quit_box(window_quit_yesno):
+    title_text=model.get_window_quit_title_text()
     title_text=" "+title_text+" "
-    message_text="Do you really want to quit the Galaxie Drake?"
-    yes_text="Yes"
-    no_text="No "
+    message_text=model.get_window_quit_message_text()
+    yes_text=model.get_window_quit_yes_text()
+    no_text=model.get_window_quit_no_text()
     
     num_lines,num_cols = screen.getmaxyx()
-    quit_box=screen.subwin(num_lines-4,0,1,0)
+    quit_box=screen.subwin(num_lines-3,0,1,0)
     quit_box_num_lines,quit_box_num_cols = quit_box.getmaxyx()
 
     if curses.has_colors():
-        #Put the Background color
         for I in range(1,quit_box_num_lines):
             quit_box.addstr(I,0,str(" " * int(quit_box_num_cols-1)),curses.color_pair(3))
         
@@ -153,34 +152,22 @@ def display_quit_box(quit_yesno):
         quit_sub_box=screen.subwin(7, len(message_text)+8,(quit_box_num_lines/3),(((quit_box_num_cols)-(len(message_text)+6))/2))
         quit_sub_box_num_lines,quit_sub_box_num_cols = quit_sub_box.getmaxyx()
         if curses.has_colors():
-        #Put the Background color
             for I in range(0,quit_sub_box_num_lines):
                 quit_sub_box.addstr(I,0,str(" " * int(quit_sub_box_num_cols-1)),curses.color_pair(4))
         
         quit_sub_box.bkgdset(ord(' '), curses.color_pair(4))
         quit_sub_box_frame=quit_sub_box.derwin(5,len(message_text)+5,1,1)
         quit_sub_box_frame_num_lines,quit_sub_box_frame_num_cols = quit_sub_box_frame.getmaxyx()
-
-        #if curses.has_colors():
-        #    #Put the Background color
-        #    for I in range(1,quit_sub_box_num_lines-1):
-        #        quit_sub_box.addstr(I,0,str(" " * int(quit_sub_box_num_cols-1)),curses.color_pair(3))
-        #    
-        #    quit_sub_box.bkgdset(ord(' '), curses.color_pair(3))
         quit_sub_box_frame.box()
-        #Title
+
         quit_sub_box_frame.addstr(0,(quit_sub_box_frame_num_cols/2)-(len(title_text)/2),title_text,curses.color_pair(5))
-        #Textedisplay_top_menu
         quit_sub_box_frame.addstr(1,2,message_text,curses.color_pair(4))
-        #Buttons
-        
-        #Yes
+
         global YesButton;
         global NoButton;
         YesButton=CursesButton(quit_sub_box_frame,2,(quit_sub_box_frame_num_cols/2)-((len(yes_text)+4))-3,yes_text)
-        #YesButton.Select()
         NoButton=CursesButton(quit_sub_box_frame,2,(quit_sub_box_frame_num_cols/2)-1,no_text)
-        if quit_yesno:
+        if model.get_window_quit_yesno():
             YesButton.Select()
             NoButton.UnSelect()
         else:
@@ -189,22 +176,7 @@ def display_quit_box(quit_yesno):
 
         global Buttons
         Buttons=[YesButton,NoButton]
-        #quit_sub_box_frame.addstr(3,(quit_sub_box_frame_num_cols/2)-((len(yes_text)+4)),"[ ",curses.color_pair(1))
-        #quit_sub_box_frame.addstr(yes_text[:1],curses.color_pair(6))
-        #quit_sub_box_frame.addstr(yes_text[-int(int(len(yes_text))-1):],curses.color_pair(1))
-        #quit_sub_box_frame.addstr(" ]",curses.color_pair(1))
-        #Space
-        #quit_sub_box_frame.addstr("  ")
-        #No
-        #quit_sub_box_frame.addstr("[ ",curses.color_pair(4))
-        #yes_pos_column, yes_pos_line=quit_sub_box_frame.getyx()
-        #y_pos=
-        #quit_sub_box_frame.addstr(no_text[:1],curses.color_pair(5))
-        #quit_sub_box_frame.addstr(no_text[-int(int(len(no_text))-1):],curses.color_pair(4))
-        #quit_sub_box_frame.addstr(" ]",curses.color_pair(4))
 
-        #curses.curs_set(1)
-        #quit_sub_box_frame.chgat(yes_pos_column,yes_pos_line, 1, curses.color_pair(4))
         quit_sub_box_frame.refresh()
         quit_sub_box.refresh()
     quit_box.refresh()
@@ -266,8 +238,12 @@ class model_class():
     def __init__(self):
         self.last_message=""
         self.active_window=3
-        self.window_button_underline=2
-        self.quit_yesno=1
+        self.windows_button_underline=2
+        self.window_quit_yesno=1
+        self.window_quit_title_text="The Galaxie Drake"
+        self.window_quit_message_text="Do you really want to quit the Galaxie Drake?"
+        self.window_quit_yes_text="Yes"
+        self.window_quit_no_text="No "
 
     def set_last_message(self,message):
         self.last_message=message
@@ -282,15 +258,27 @@ class model_class():
     def get_active_window(self):
         return self.active_window
 
-    def set_window_button_underline(self,value):
-        self.window_button_underline=value
-    def get_window_button_underline(self):
-        return self.window_button_underline
+    def set_windows_button_underline(self,value):
+        self.windows_button_underline=value
+    def get_windows_button_underline(self):
+        return self.windows_button_underline
 
-    def set_quit_yesno(self,value):
-        self.quit_yesno=value
-    def get_quit_yesno(self):
-        return self.quit_yesno
+    def set_window_quit_yesno(self,value):
+        self.window_quit_yesno=value
+    def get_window_quit_yesno(self):
+        return self.window_quit_yesno
+
+    def get_window_quit_title_text(self):
+        return self.window_quit_title_text
+
+    def get_window_quit_message_text(self):
+        return self.window_quit_message_text
+
+    def get_window_quit_yes_text(self):
+        return self.window_quit_yes_text
+
+    def get_window_quit_no_text(self):
+        return self.window_quit_no_text
 
 ########################
 ###    THE VIEWER    ###
@@ -299,7 +287,7 @@ class viewer_class():
     def __init__(self):
         screen.clear()
 
-        curses.curs_set(1)
+        curses.curs_set(0)
         screen.keypad(1)
         curses.mousemask(1)
         
@@ -332,7 +320,7 @@ class viewer_class():
         elif active_window_to_display==5:
                 display_audio_box()
         elif active_window_to_display==10:
-                display_quit_box(model.get_quit_yesno())
+                display_quit_box(model.get_window_quit_yesno())
 
         self.display_message(str(model.get_last_message()))
 
@@ -367,6 +355,10 @@ class viewer_class():
 ###    THE CONTROLLER    ###
 ############################
 def controler():
+    event_actions = {
+        curses.KEY_RIGHT:yes_no,
+        curses.KEY_LEFT:yes_no
+    }
 
     while True:
         event = screen.getch()
@@ -389,28 +381,28 @@ def controler():
                         viewer.display_message(Action)
             elif event == curses.KEY_RIGHT:
                 #viewer.display_messagee("The User Pressed RIGHT")
-                if model.get_quit_yesno():
-                    model.set_quit_yesno(0)
+                if model.get_window_quit_yesno():
+                    model.set_window_quit_yesno(0)
                     YesButton.UnSelect()
                     NoButton.Select()
                 else:
-                    model.set_quit_yesno(1)
+                    model.set_window_quit_yesno(1)
                     YesButton.Select()
                     NoButton.UnSelect()
             elif event == curses.KEY_LEFT:
                 #viewer.display_message("The User Pressed LEFT "+str(YesButton.SelectedState()))
-                if model.get_quit_yesno():
-                    model.set_quit_yesno(0)
+                if model.get_window_quit_yesno():
+                    model.set_window_quit_yesno(0)
                     YesButton.UnSelect()
                     NoButton.Select()
                 else:
-                    model.set_quit_yesno(1)
+                    model.set_window_quit_yesno(1)
                     YesButton.Select()
                     NoButton.UnSelect()
             elif event == curses.KEY_ENTER or event == ord("\n"):
-                   if model.get_quit_yesno():
+                   if model.get_window_quit_yesno():
                         Action="Yes"
-                   if not model.get_quit_yesno():
+                   if not model.get_window_quit_yesno():
                         Action="No"
             
             elif event == 27:
@@ -424,7 +416,9 @@ def controler():
         #Main Key Control
         #if Action!="": break
         if event == ord("q"):
-            viewer.display_message("The User Pressed Q")
+            message="The User Pressed Q"
+            viewer.display_message(message)
+            model.set_last_message(message)
             break
         elif event == ord("\t"):
             message="The User Pressed TAB"
@@ -507,7 +501,7 @@ def controler():
             model.set_last_message(message)
             break
         elif (Action[:1]=="N"):
-            quit_yesno=1   
+            model.set_window_quit_yesno(1)
             model.set_active_window(3)
             message="The User selected "+Action
             viewer.display_message(message)
