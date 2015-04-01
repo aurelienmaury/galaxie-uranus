@@ -1,0 +1,454 @@
+#! /usr/bin/python
+
+import curses
+import curses.textpad
+import traceback
+import collections
+
+
+class Panel:
+
+    def __init__(self, title, activation_key):
+        self.title = title
+        self.activation_key = activation_key
+
+    def display_on(self, screen):
+        num_lines, num_cols = screen.getmaxyx()
+        # Creat a sub window
+        full_box = screen.subwin(num_lines - 3, 0, 1, 0)
+        self_num_lines, selft_num_cols = full_box.getmaxyx()
+        # Put the Background color
+        if curses.has_colors():
+            for I in range(1, self_num_lines - 1):
+                full_box.addstr(I, 1, str(" " * int(selft_num_cols - 2)), curses.color_pair(3))
+            full_box.bkgdset(ord(' '), curses.color_pair(3))
+        full_box.box()
+        full_box.addstr(0, 1, self.title)
+        full_box.refresh()
+
+
+class Event:
+
+    def __init__(self, value):
+        self.value = value
+
+
+class EventQueue:
+
+    def __init__(self):
+        self.internal_queue = collections.deque()
+
+    def pop(self):
+        return self.internal_queue.popleft()
+
+    def push(self, event):
+        self.internal_queue.append(event)
+
+    def has_events(self):
+        return len(self.internal_queue) != 0
+
+
+class App:
+    def __init__(self, app_name, screen):
+        self.panels = [
+            Panel("Source", curses.KEY_F1),
+            Panel("Summary", curses.KEY_F2),
+            Panel("Exit", curses.KEY_F10),
+        ]
+        self.handlers = {}
+        self.app_name = app_name
+        self.event_queue = EventQueue()
+        self.max_button_number = 10
+        self.screen = screen
+        self.active_panel = 0
+        self.started = False
+        self._init_curses()
+
+    def _init_curses(self):
+        self.screen.clear()
+        curses.curs_set(0)
+        self.screen.keypad(1)
+        curses.mousemask(1)
+        self._init_colors()
+
+    def _init_colors(self):
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_CYAN)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        # Dialog Windows Buttons
+        curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_WHITE)
+        curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_CYAN)
+
+    def activate_panel(self, activation_key):
+        for index, panel in enumerate(self.panels):
+            if activation_key == panel.activation_key:
+                self.active_panel = index
+                break
+
+    def run(self):
+        self.started = True
+        self.event_queue.push(Event(self.panels[0].activation_key))
+
+        while self.started:
+            if self.event_queue.has_events():
+                new_event = self.event_queue.pop()
+                self.activate_panel(new_event.value)
+                self.refresh()
+
+            input_event = self.screen.getch()
+
+            if input_event != -1:
+                self.event_queue.push(Event(input_event))
+
+    def refresh(self):
+        self.display_top_menu()
+        self.panels[self.active_panel].display_on(self.screen)
+        self.display_bottom_menu()
+        self.screen.refresh()
+
+    def display_top_menu(self):
+        num_lines, num_cols = self.screen.getmaxyx()
+        # Creat a sub window
+        top_menu_box = self.screen.subwin(0, 0, 0, 0)
+        top_menu_box_num_lines, top_menu_box_num_cols = top_menu_box.getmaxyx()
+        if curses.has_colors():
+            top_menu_box.addstr(0, 0, str(" " * int(top_menu_box_num_cols)), curses.color_pair(1))
+            top_menu_box.bkgdset(ord(' '), curses.color_pair(1))
+
+        top_menu_box.addstr(0, 0, self.app_name)
+        top_menu_box.refresh()
+
+    def display_bottom_menu(self):
+        item_list = self.panels
+        req_button_number = len(item_list)
+
+        if req_button_number > self.max_button_number:
+            req_button_number = self.max_button_number
+
+        num_lines, num_cols = self.screen.getmaxyx()
+
+        available_per_item = int((num_cols / req_button_number) - 3)
+        max_visible = 1
+
+        for index in range(1, req_button_number + 1):
+            cumul = 0
+            for U in range(0, max_visible):
+                cumul = cumul + len(str(item_list[U]))
+            if num_cols - 1 > cumul + int((3 * max_visible) + 1):
+                # Put the entire line with curses.color_pair(1))
+                self.screen.addstr(num_lines - 1, 0, str(" " * int(num_cols - 1)), curses.color_pair(1))
+                max_visible = max_visible + 1
+
+        self.screen.addstr(num_lines - 1, 0, "", curses.color_pair(2))
+
+        for count in range(0, max_visible - 1):
+            if len(str(count + 1)) == 2:
+                self.screen.addstr(str(count + 1), curses.color_pair(226) | curses.A_BOLD)
+                self.screen.addstr(item_list[count].title, curses.color_pair(1))
+                spacing = (available_per_item - len(item_list[count]) - 1)
+                self.screen.addstr(str(" " * int(spacing)), curses.color_pair(1))
+            elif len(str(count + 1)) == 1:
+                self.screen.addstr(" ", curses.COLOR_WHITE | curses.COLOR_BLACK)
+                self.screen.addstr(str(count + 1).title(), curses.color_pair(2) | curses.A_BOLD)
+                self.screen.addstr(item_list[count].title, curses.color_pair(1))
+                spacing = available_per_item - len(item_list[count].title)
+                self.screen.addstr(str(" " * int(spacing)), curses.color_pair(1))
+
+    def display_message(self, message):
+
+        screen_num_lines, screen_num_cols = self.screen.getmaxyx()
+        display_message_subwin = self.screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
+        display_message_subwin_num_lines, display_message_subwin_num_cols = display_message_subwin.getmaxyx()
+        if curses.has_colors():
+            display_message_subwin.addstr(0, 0, str(" " * int(display_message_subwin_num_cols - 1)))
+            display_message_subwin.insstr(0, display_message_subwin_num_cols - 1, " ")
+            display_message_subwin.addstr(0, 0, str(message))
+        display_message_subwin.refresh()
+        self.screen.refresh()
+
+
+
+class CursesButton:
+    def __init__(self, Window, Y, X, Label, Hotkey=0):
+        self.Parent = Window
+        self.YParent, self.XParent = Window.getbegyx()
+        self.Y = Y
+        self.X = X
+        self.LabelButton = "[ " + Label + " ]"
+        self.Label = Label
+        self.Width = len(self.LabelButton) + 2  # label, plus lines on side
+        self.Underline = model.get_windows_button_underline()
+        Window.refresh()
+
+    def Select(self):
+        Underline = model.get_windows_button_underline()
+        self.Parent.addstr(self.Y + 1, self.X + 1, self.LabelButton, curses.color_pair(1))
+        self.Parent.addstr(self.Y + 1, self.X + self.Underline + 1, self.LabelButton[Underline],
+                           curses.A_REVERSE | curses.color_pair(3))
+        self.Parent.move(self.Y + 1, self.X + self.Underline + 1)
+        self.Selected = 1
+
+    def UnSelect(self):
+        Underline = model.get_windows_button_underline()
+        self.Parent.addstr(self.Y + 1, self.X + 1, self.LabelButton, curses.color_pair(4))
+        self.Parent.addstr(self.Y + 1, self.X + self.Underline + 1, self.LabelButton[Underline],
+                           curses.A_REVERSE | curses.color_pair(3))
+        self.Selected = 0
+
+    def SelectedState(self):
+        # display_message(str(self.Selected))
+        if self.Selected == 1:
+            return 1
+        else:
+            return 0
+
+    def KeyPressed(self, Char):
+
+        if (Char > 255): return 0  # skip control-characters
+        if chr(Char).upper() == self.LabelButton[self.Underline]:
+            return 1
+        else:
+            return 0
+
+    def MouseClicked(self, MouseEvent):
+        (id, x, y, z, event) = MouseEvent
+        if (self.YParent + 3 <= y <= self.YParent + 3) and (
+                            self.X + self.XParent <= x < self.X + self.XParent + self.Width - 1):
+            return 1
+        else:
+            return 0
+
+def display_quit_box(window_quit_yesno):
+    title_text = model.get_window_quit_title_text()
+    title_text = " " + title_text + " "
+    message_text = model.get_window_quit_message_text()
+    yes_text = model.get_window_quit_yes_text()
+    no_text = model.get_window_quit_no_text()
+
+    num_lines, num_cols = screen.getmaxyx()
+    quit_box = screen.subwin(num_lines - 3, 0, 1, 0)
+    quit_box_num_lines, quit_box_num_cols = quit_box.getmaxyx()
+
+    if curses.has_colors():
+        for I in range(1, quit_box_num_lines):
+            quit_box.addstr(I, 0, str(" " * int(quit_box_num_cols - 1)), curses.color_pair(3))
+
+        quit_box.bkgdset(ord(' '), curses.color_pair(3))
+
+    quit_box.box()
+    quit_box.addstr(0, 1, "Quit")
+
+    if quit_box_num_lines > 9 and quit_box_num_cols > len(message_text) + 10:
+        quit_sub_box = screen.subwin(7, len(message_text) + 8, (quit_box_num_lines / 3),
+                                     (((quit_box_num_cols) - (len(message_text) + 6)) / 2))
+        quit_sub_box_num_lines, quit_sub_box_num_cols = quit_sub_box.getmaxyx()
+        if curses.has_colors():
+            for I in range(0, quit_sub_box_num_lines):
+                quit_sub_box.addstr(I, 0, str(" " * int(quit_sub_box_num_cols - 1)), curses.color_pair(4))
+
+        quit_sub_box.bkgdset(ord(' '), curses.color_pair(4))
+        quit_sub_box_frame = quit_sub_box.derwin(5, len(message_text) + 5, 1, 1)
+        quit_sub_box_frame_num_lines, quit_sub_box_frame_num_cols = quit_sub_box_frame.getmaxyx()
+        quit_sub_box_frame.box()
+
+        quit_sub_box_frame.addstr(0, (quit_sub_box_frame_num_cols / 2) - (len(title_text) / 2), title_text,
+                                  curses.color_pair(5))
+        quit_sub_box_frame.addstr(1, 2, message_text, curses.color_pair(4))
+
+        global YesButton;
+        global NoButton;
+        YesButton = CursesButton(quit_sub_box_frame, 2, (quit_sub_box_frame_num_cols / 2) - ((len(yes_text) + 4)) - 3,
+                                 yes_text)
+        NoButton = CursesButton(quit_sub_box_frame, 2, (quit_sub_box_frame_num_cols / 2) - 1, no_text)
+        if model.get_window_quit_yesno():
+            YesButton.Select()
+            NoButton.UnSelect()
+        else:
+            YesButton.UnSelect()
+            NoButton.Select()
+
+        global Buttons
+        Buttons = [YesButton, NoButton]
+
+        quit_sub_box_frame.refresh()
+        quit_sub_box.refresh()
+    quit_box.refresh()
+
+
+#######################
+###    THE MODEL    ###
+#######################
+class model_class():
+    def __init__(self):
+        self.last_message = ""
+        self.active_window = 3
+        self.windows_button_underline = 2
+        self.window_quit_yesno = 1
+        self.window_quit_title_text = "The Galaxie Drake"
+        self.window_quit_message_text = "Do you really want to quit the Galaxie Drake?"
+        self.window_quit_yes_text = "Yes"
+        self.window_quit_no_text = "No "
+
+    def set_last_message(self, message):
+        self.last_message = message
+
+    def get_last_message(self):
+        if self.last_message:
+            return self.last_message
+        else:
+            return ""
+
+    def set_active_window(self, active_window):
+        self.active_window = active_window
+
+    def get_active_window(self):
+        return self.active_window
+
+    def set_windows_button_underline(self, value):
+        self.windows_button_underline = value
+
+    def get_windows_button_underline(self):
+        return self.windows_button_underline
+
+    def set_window_quit_yesno(self, value):
+        self.window_quit_yesno = value
+
+    def get_window_quit_yesno(self):
+        return self.window_quit_yesno
+
+    def get_window_quit_title_text(self):
+        return self.window_quit_title_text
+
+    def get_window_quit_message_text(self):
+        return self.window_quit_message_text
+
+    def get_window_quit_yes_text(self):
+        return self.window_quit_yes_text
+
+    def get_window_quit_no_text(self):
+        return self.window_quit_no_text
+
+
+
+############################
+###    THE CONTROLLER    ###
+############################
+
+def on_message(message):
+    viewer.display_message(message)
+    model.set_last_message(message)
+
+
+def on_window_change(id, message):
+    on_message(message)
+    model.set_active_window(id)
+
+
+def controler():
+
+    while True:
+        event = screen.getch()
+        Action = ""
+        if (event == -1):
+            continue
+
+        # Control of Quit Box
+        if model.get_active_window() == 10:
+            for Button in Buttons:
+                if Button.KeyPressed(event):
+                    Action = Button.Label
+                    viewer.display_message(Action)
+            # Handle mouse-events:
+            if (event == curses.KEY_MOUSE):
+                MouseEvent = curses.getmouse()
+                for Button in Buttons:
+                    if Button.MouseClicked(MouseEvent):
+                        Action = Button.Label
+                        viewer.display_message(Action)
+            elif event == curses.KEY_RIGHT:
+                # viewer.display_messagee("The User Pressed RIGHT")
+                if model.get_window_quit_yesno():
+                    model.set_window_quit_yesno(0)
+                    YesButton.UnSelect()
+                    NoButton.Select()
+                else:
+                    model.set_window_quit_yesno(1)
+                    YesButton.Select()
+                    NoButton.UnSelect()
+            elif event == curses.KEY_LEFT:
+                # viewer.display_message("The User Pressed LEFT "+str(YesButton.SelectedState()))
+                if model.get_window_quit_yesno():
+                    model.set_window_quit_yesno(0)
+                    YesButton.UnSelect()
+                    NoButton.Select()
+                else:
+                    model.set_window_quit_yesno(1)
+                    YesButton.Select()
+                    NoButton.UnSelect()
+            elif event == curses.KEY_ENTER or event == ord("\n"):
+                if model.get_window_quit_yesno():
+                    Action = "Yes"
+                if not model.get_window_quit_yesno():
+                    Action = "No"
+
+            elif event == 27:
+                screen.nodelay(1)
+                n = screen.getch()
+                if n == -1:
+                    # Escape was pressed
+                    Action = "No"
+                screen.nodelay(0)
+
+        if event in message_events:
+            message_events[event]()
+        elif event in window_change_events:
+            window_change_events[event]()
+        elif event == curses.KEY_F10:
+            model.set_active_window(10)
+        elif (Action[:1] == "Y"):
+            on_message("The User selected " + Action)
+            break
+        elif (Action[:1] == "N"):
+            model.set_window_quit_yesno(1)
+            model.set_active_window(3)
+            on_message("The User selected " + Action)
+        else:
+            pass
+
+        viewer.refresh_screen(model.get_active_window())
+
+
+def main(stdscr):
+
+    app = App("GalaxieDrake_mo", stdscr)
+    app.run()
+
+    global screen
+    screen = stdscr
+
+    #global viewer
+    viewer = viewer_class([
+        "Help",
+        "Source",
+        "Summary",
+        "Video",
+        "Audio",
+        "Subtitles",
+        "Chapter",
+        "Tags",
+        "Encode",
+        "Quit"
+    ])
+
+    global model
+    model = model_class()
+    #controler()
+
+
+if __name__ == '__main__':
+    try:
+        curses.wrapper(main)
+    except:
+        traceback.print_exc()
+
