@@ -54,6 +54,8 @@ class CursesButton:
         else:
             return 0
 
+
+
 def display_quit_box(window_quit_yesno):
     title_text = model.get_window_quit_title_text()
     title_text = " " + title_text + " "
@@ -64,18 +66,19 @@ def display_quit_box(window_quit_yesno):
     num_lines, num_cols = screen.getmaxyx()
     quit_box = screen.subwin(num_lines - 3, 0, 1, 0)
     quit_box_num_lines, quit_box_num_cols = quit_box.getmaxyx()
+    
+    viewer.display_tags_box(model.get_last_tags())
+    #if curses.has_colors():
+    #    for I in range(1, quit_box_num_lines):
+    #        quit_box.addstr(I, 0, str(" " * int(quit_box_num_cols - 1)), curses.color_pair(3))
+    #
+    #    quit_box.bkgdset(ord(' '), curses.color_pair(3))
 
-    if curses.has_colors():
-        for I in range(1, quit_box_num_lines):
-            quit_box.addstr(I, 0, str(" " * int(quit_box_num_cols - 1)), curses.color_pair(3))
-
-        quit_box.bkgdset(ord(' '), curses.color_pair(3))
-
-    quit_box.box()
-    quit_box.addstr(0, 1, "Quit")
+    #quit_box.box()
+    #quit_box.addstr(0, 1, "Quit")
 
     if quit_box_num_lines > 9 and quit_box_num_cols > len(message_text) + 10:
-        quit_sub_box = screen.subwin(7, len(message_text) + 8, (quit_box_num_lines / 3),
+        quit_sub_box = screen.subwin(7, len(message_text) + 8, ((num_lines / 3)-2),
                                      (((quit_box_num_cols) - (len(message_text) + 6)) / 2))
         quit_sub_box_num_lines, quit_sub_box_num_cols = quit_sub_box.getmaxyx()
         if curses.has_colors():
@@ -118,12 +121,43 @@ class model_class():
     def __init__(self):
         self.last_message = ""
         self.active_window = 3
+        self.last_tags = "Summary"
+        self.active_tags = "Summary"
+
+        self.last_window = 3
         self.windows_button_underline = 2
         self.window_quit_yesno = 1
         self.window_quit_title_text = "The Galaxie Drake"
         self.window_quit_message_text = "Do you really want to quit the Galaxie Drake?"
         self.window_quit_yes_text = "Yes"
         self.window_quit_no_text = "No "
+    
+        self.window_tags_title_label="Title:"
+        self.window_tags_actors_label="Actors:"
+        self.window_tags_director_label="Director:"
+        self.window_tags_release_label="Relase Date:"
+        self.window_tags_comment_label="Comment:"
+        self.window_tags_genre_label="Genre:"
+        self.window_tags_description_label="Description:"
+        self.window_tags_plot_label="Plot:"
+
+        self.window_tags_title_value="The movie of the death who kill hard"
+        self.window_tags_actors_value="A Tonne of mege actors"
+        self.window_tags_director_value="Theu have do it alone"
+        self.window_tags_release_date_value="2099"
+        self.window_tags_comment_value="."
+        self.window_tags_genre_value=".."
+        self.window_tags_description_value="..."
+        self.window_tags_plot_value="...."
+
+    def set_last_tags(self, message):
+        self.last_tags = message
+
+    def get_last_tags(self):
+        if self.last_tags:
+            return self.last_tags
+        else:
+            return ""
 
     def set_last_message(self, message):
         self.last_message = message
@@ -145,25 +179,90 @@ class model_class():
 
     def get_windows_button_underline(self):
         return self.windows_button_underline
-
+    
+    #QUIT Window get
     def set_window_quit_yesno(self, value):
         self.window_quit_yesno = value
-
     def get_window_quit_yesno(self):
         return self.window_quit_yesno
-
     def get_window_quit_title_text(self):
         return self.window_quit_title_text
-
     def get_window_quit_message_text(self):
         return self.window_quit_message_text
-
     def get_window_quit_yes_text(self):
         return self.window_quit_yes_text
-
     def get_window_quit_no_text(self):
         return self.window_quit_no_text
 
+    # TAGS Window Get Value
+    def get_window_tags_title_label(self):
+        return self.window_tags_title_label
+    def get_window_tags_actors_label(self):
+        return self.window_tags_actors_label
+    def get_window_tags_director_label(self):
+        return self.window_tags_director_label
+    def get_window_tags_release_label(self):
+        return self.window_tags_release_label
+    def get_window_tags_comment_label(self):
+        return self.window_tags_comment_label
+    def get_window_tags_genre_label(self):
+        return self.window_tags_genre_label
+    def get_window_tags_description_label(self):
+        return self.window_tags_description_label
+    def get_window_tags_plot_label(self):
+        return self.window_tags_plot_label
+
+    def get_window_tags_title_value(self):
+        return self.window_tags_title_value
+    def get_window_tags_actors_value(self):
+        return self.window_tags_actors_value
+    def get_window_tags_director_value(self):
+        return self.window_tags_director_value
+    def get_window_tags_release_date_value(self):
+        return self.window_tags_release_date_value
+    def get_window_tags_comment_value(self):
+        return self.window_tags_comment_value
+    def get_window_tags_genre_value(self):
+        return self.window_tags_genre_value
+    def get_window_tags_description_value(self):
+        return self.window_tags_description_value
+    def get_window_tags_plot_value(self):
+        return self.window_tags_plot_value
+
+    # TAGS Window Set Value
+    def set_window_tags_title_label(self, message):
+        self.window_tags_title_label=str(message)
+    def set_window_tags_actors_label(self, message):
+        self.window_tags_actors_label=str(message)
+    def set_window_tags_director_label(self, message):
+        self.window_tags_director_label=str(message)
+    def set_window_tags_release_label_text(self, message):
+        self.window_tags_release_label_text=str(message)
+    def set_window_tags_comment_label(self, message):
+        self.window_tags_comment_label=str(message)
+    def set_window_tags_genre_label(self, message):
+        self.window_tags_genre_label=str(message)
+    def set_window_tags_description_label(self, message):
+        self.window_tags_description_label=str(message)
+    def set_window_tags_plot_label(self, message):
+        self.window_tags_plot_label=str(message)
+
+    def set_window_tags_title_value(self, message):
+        self.window_tags_title_value="The movie of the death who kill hard"
+    def set_window_tags_actors_value(self, message):
+        self.window_tags_actors_value="A Tonne of mege actors"
+    def set_window_tags_director_value(self, message):
+        self.window_tags_director_value="Theu have do it alone"
+    def set_window_tags_release_date_value(self, message):
+        self.window_tags_release_date_value="2099"
+    def set_window_tags_comment_value(self, message):
+        self.window_tags_comment_value="."
+    def set_window_tags_genre_value(self, message):
+        self.window_tags_genre_value=".."
+    def set_window_tags_description_value(self, message):
+        self.window_tags_description_value="..."
+    def set_window_tags_plot_value(self, message):
+        self.window_tags_plot_value="...."
 
 ########################
 ###    THE VIEWER    ###
@@ -181,6 +280,7 @@ class viewer_class():
             3: lambda: self.display_full_box("Summary"),
             4: lambda: self.display_full_box("Video"),
             5: lambda: self.display_full_box("Audio"),
+            8: lambda: self.display_tags_box("Tags"),
         }
 
         self.display_top_menu()
@@ -219,6 +319,8 @@ class viewer_class():
         full_box.addstr(0, 1, title)
         full_box.refresh()
 
+
+
     def refresh_screen(self, active_window_to_display):
         self.display_top_menu()
 
@@ -242,7 +344,7 @@ class viewer_class():
             top_menu_box.addstr(0, 0, str(" " * int(top_menu_box_num_cols)), curses.color_pair(1))
             top_menu_box.bkgdset(ord(' '), curses.color_pair(1))
 
-        top_menu_box.addstr(0, 0, "GalaxieDrake")
+        top_menu_box.addstr(0, 0, "  File     Queue     View     Help")
         top_menu_box.refresh()
 
     def display_message(self, message):
@@ -306,6 +408,66 @@ class viewer_class():
 
         screen.refresh()
 
+    def display_tags_box(self,window_name):
+        model.set_last_tags(window_name)
+        title_label       = model.get_window_tags_title_label()
+        actors_label      = model.get_window_tags_actors_label()
+        director_label    = model.get_window_tags_director_label()
+        release_date_label     = model.get_window_tags_release_label()
+        comment_label     = model.get_window_tags_comment_label()
+        genre_label       = model.get_window_tags_genre_label()
+        description_label = model.get_window_tags_description_label()
+        plot_label        = model.get_window_tags_plot_label()
+
+        title_value        = model.get_window_tags_title_value()
+        actors_value       = model.get_window_tags_actors_value()
+        director_value     = model.get_window_tags_director_value()
+        release_date_value = model.get_window_tags_release_date_value()
+        comment_value      = model.get_window_tags_comment_value()
+        genre_value        = model.get_window_tags_genre_value()
+        description_value  = model.get_window_tags_description_value()
+        plot_value         = model.get_window_tags_plot_value()
+
+        labels_list= [
+            title_label, 
+            actors_label,
+            director_label,
+            release_date_label,
+            comment_label,
+            genre_label,
+            description_label,
+            plot_label,
+            ]
+
+
+        num_lines, num_cols = screen.getmaxyx()
+        tags_box = screen.subwin(num_lines - 3, 0, 1, 0)
+        tags_box_num_lines, tags_box_num_cols = tags_box.getmaxyx()
+
+        if curses.has_colors():
+            for I in range(1, tags_box_num_lines):
+                tags_box.addstr(I, 0, str(" " * int(tags_box_num_cols - 1)), curses.color_pair(3))
+
+            tags_box.bkgdset(ord(' '), curses.color_pair(3))
+     
+        label_max_len=0
+        for label in labels_list:
+            if len(label) > label_max_len:
+                label_max_len = len(label)
+
+        tags_box.box()
+        tags_box.addstr(0, 1, window_name)
+        tags_box.addstr(2, (label_max_len - (len(str(title_label)))        +1), str(title_label + " " + title_value))
+        tags_box.addstr(3, (label_max_len - (len(str(actors_label)))       +1), str(actors_label + " " + actors_value))
+        tags_box.addstr(4, (label_max_len - (len(str(director_label)))     +1), str(director_label + " " + director_value))
+        tags_box.addstr(5, (label_max_len - (len(str(release_date_label))) +1), str(release_date_label + " " + release_date_value))
+        tags_box.addstr(6, (label_max_len - (len(str(comment_label)))      +1), str(comment_label + " " + comment_value))
+        tags_box.addstr(7, (label_max_len - (len(str(genre_label)))        +1), str(genre_label + " " + genre_value))
+        tags_box.addstr(8, (label_max_len - (len(str(description_label)))  +1), str(description_label + " " + description_value))
+        tags_box.addstr(9, (label_max_len - (len(str(plot_label)))         +1), str(plot_label + " " + plot_value))
+        
+        tags_box.refresh()
+        #tags_box.refrech()
 
 ############################
 ###    THE CONTROLLER    ###
@@ -404,6 +566,7 @@ def controler():
         elif event in window_change_events:
             window_change_events[event]()
         elif event == curses.KEY_F10:
+            model.set_last_tags(str(model.get_active_window()))
             model.set_active_window(10)
         elif (Action[:1] == "Y"):
             on_message("The User selected " + Action)
@@ -446,4 +609,5 @@ if __name__ == '__main__':
         curses.wrapper(main)
     except:
         traceback.print_exc()
+
 
