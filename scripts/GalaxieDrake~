@@ -340,9 +340,10 @@ class viewer_class():
         # Creat a sub window
         top_menu_box = screen.subwin(0, 0, 0, 0)
         top_menu_box_num_lines, top_menu_box_num_cols = top_menu_box.getmaxyx()
-        if curses.has_colors():
-            top_menu_box.addstr(0, 0, str(" " * int(top_menu_box_num_cols)), curses.color_pair(1))
-            top_menu_box.bkgdset(ord(' '), curses.color_pair(1))
+        #if curses.has_colors():
+        #    top_menu_box.addstr(0, 0, str(" " * int(top_menu_box_num_cols)), curses.color_pair(1))
+        #    top_menu_box.bkgdset(ord(' '), curses.color_pair(1))
+        top_menu_box.chgat(-1, curses.color_pair(1))
         top_menu_box.addstr(0, 0, "  File     Queue     View     Help")
         top_menu_box.refresh()
 
@@ -352,6 +353,7 @@ class viewer_class():
         display_message_subwin = screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
         display_message_subwin_num_lines, display_message_subwin_num_cols = display_message_subwin.getmaxyx()
         if curses.has_colors():
+            display_message_subwin.chgat(-1, curses.color_pair(1))
             display_message_subwin.addstr(0, 0, str(" " * int(display_message_subwin_num_cols - 1)))
             display_message_subwin.insstr(0, display_message_subwin_num_cols - 1, " ")
             display_message_subwin.addstr(0, 0, str(message))
