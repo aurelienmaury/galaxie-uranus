@@ -1,4 +1,4 @@
-#$! /bin/bash
+#! /bin/bash
 #Write by Tuxa <tuxa galaxie.eu.org>
 # It script it publish on GNU GENERAL PUBLIC LICENSE
 #http://www.gnu.org/licenses/gpl-3.0.en.html
