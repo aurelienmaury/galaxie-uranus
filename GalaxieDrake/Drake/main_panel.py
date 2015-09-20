@@ -47,15 +47,14 @@ class MainPanel(object):
         self.system_information_text += str(self.release_text)
         self.system_information_text += ")"
 
-        self.cpu_number = len(self.model.cpu_percent_list)
+        self.cpu_number = len(self.model.psutil_cpu_percent_list)
         self.cpu_label_text = self.model.cpu_label_text
-        if self.cpu_number <= 1:
-            self.by_cpu_size_allowed = self.x_parent_max - 2
-        else:
-            self.by_cpu_size_allowed = (self.x_parent_max - 2) / self.cpu_number
 
-        self.mem_swap_size_allowed = (self.x_parent_max - 1) / 2
-
+        self.mem_label_text = self.model.mem_label_text
+        self.swap_label_text = self.model.swap_label_text
+        self.progress_bar_size_allowed = self.x_parent_max - 2
+        # Remove the text len of memory
+        self.progress_bar_size_allowed -= len(self.model.mem_summary_text) + 1
         # Position and calculation
         x_pos_up_time = (self.x_parent_max - len(str(self.model.up_time)) - 1)
         x_pos_system_information = 1 + len(self.node_name_text)
@@ -111,7 +110,7 @@ class MainPanel(object):
                         curses.color_pair(3)
                     )
 
-                line_number = 2
+                line_number += 1
                 # Use for have a center visual during dev
                 self.parent.addstr(
                     line_number,
@@ -120,51 +119,78 @@ class MainPanel(object):
                     curses.color_pair(3) | curses.A_BOLD
                 )
 
+                # Pocessor Informations
+                line_number += 1
+                self.parent.addstr(
+                    line_number,
+                    self.x + 1,
+                    str(self.model.processor_summary_text),
+                    curses.color_pair(3)
+                )
+
                 # CPU Displays
-                line_number = 3
-                for cpu_num in range(0, len(self.model.cpu_percent_list)):
-                    cpu_num_percent = self.model.cpu_percent_list[cpu_num]
-                    cpu_num_text = self.cpu_label_text + str(int(cpu_num + 1)) + ""
-                    if cpu_num == 0:
-                        x_pos = 1
-                    else:
-                        x_pos = ((self.by_cpu_size_allowed - 2) * cpu_num) + (3 * cpu_num)
+                line_number += 1
+                for cpu_num in range(0, len(self.model.psutil_cpu_percent_list)):
+                    cpu_num_percent = self.model.psutil_cpu_percent_list[cpu_num]
+                    cpu_num_text = self.cpu_label_text + str(int(cpu_num + 1)) + " "
+                    x_pos = 1
+                    # if cpu_num == 0:
+                    #     x_pos = 1
+                    # else:
+                    #     x_pos = ((self.by_cpu_size_allowed - 2) * cpu_num) + (3 * cpu_num)
 
                     ProgressBar(
                         self.parent,
                         line_number,
                         x_pos,
                         cpu_num_percent,
-                        self.by_cpu_size_allowed - 2,
+                        self.progress_bar_size_allowed,
                         curses.color_pair(3),
                         curses.color_pair(10),
                         cpu_num_text
                     )
-
-                line_number = 5
+                    line_number += 1
+                # MEM
+                # Let commented that becaus ethe loop of CPU finish by line_number += 1
+                #line_number += 1
                 x_pos = 1
                 ProgressBar(
                     self.parent,
                     line_number,
                     x_pos,
-                    50.0,
-                    self.mem_swap_size_allowed,
+                    self.model.psutil_virtual_memory.percent,
+                    self.progress_bar_size_allowed,
                     curses.color_pair(3),
-                    curses.color_pair(1),
-                    "Mem "
+                    curses.color_pair(10),
+                    self.mem_label_text
                 )
+                self.parent.addstr(
+                    line_number,
+                    self.progress_bar_size_allowed + 1 + 1,
+                    str(self.model.mem_summary_text),
+                    curses.color_pair(3)
+                )
+                # SWAP
+                line_number += 1
                 ProgressBar(
                     self.parent,
                     line_number,
-                    x_pos + self.mem_swap_size_allowed,
-                    50.0,
-                    self.mem_swap_size_allowed + 1,
+                    x_pos,
+                    self.model.psutil_swap_memory.percent,
+                    self.progress_bar_size_allowed,
                     curses.color_pair(3),
-                    curses.color_pair(1),
-                    "Swap"
+                    curses.color_pair(10),
+                    self.swap_label_text
+                )
+                self.parent.addstr(
+                    line_number,
+                    self.progress_bar_size_allowed + 1 + 1,
+                    str(self.model.swap_summary_text),
+                    curses.color_pair(3)
                 )
 
-                line_number = 7
+                # Task SPoller Summary
+                line_number += 2
                 x_pos = 1
                 TaskSpoolerSummary(
                     self.parent,
@@ -173,10 +199,11 @@ class MainPanel(object):
                     self.x_parent_max - 2,
                     self.model
                 )
-                # line_number = 9
+                # DEBUG
+                # line_number += 1
                 # self.parent.addstr(
                 #     line_number,
                 #     self.x + 1,
-                #     str("(" + str(taskspooler_pos_end) + ") < (" + str(self.x_parent_max - 2) + ")"),
+                #     str(self.model.processor_summary_text),
                 #     curses.color_pair(3)
                 # )

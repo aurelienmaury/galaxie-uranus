@@ -47,10 +47,13 @@ class ProgressBar(object):
             self.bg_color | curses.A_BOLD
         )
 
-        dist_x = self.x + self.size + 4
+        dist_x = self.x + self.size + 4 + 4
         cpu_num_color = self.bg_color
-        if int(round(self.percent)) < 10:
+        if int(round(self.percent)) >= 0:
                 dist_x = self.x + len(label) + self.size + 1 + 3
+                cpu_num_color = self.bg_color
+        if int(round(self.percent)) >= 10:
+                dist_x = self.x + len(label) + self.size + 1 + 2
                 cpu_num_color = self.bg_color
         if int(round(self.percent)) >= 70:
                 dist_x = self.x + len(label) + self.size + 1 + 2

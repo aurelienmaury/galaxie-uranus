@@ -14,30 +14,29 @@ import psutil
 
 
 compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
-from Drake.transcoder import HandBrake
-from Drake.events import *
-from Drake.taskspooler import TaskSpooler
-from Drake.utility import display_up_time
+from ..transcoder import HandBrake
+from ..events import *
+from ..taskspooler import TaskSpooler
+from ..utility import display_up_time
+
 
 class controler_class():
     def __init__(self, screen, viewer, model):
         self.model = model
         self.viewer = viewer
         self.screen = screen
-        self.event_queue = EventQueue()
 
         # Creat a TaskSpooler objec tfor dialog with "tsp"
         self.model.tsp = TaskSpooler()
         # Init the list queue for the frist time
         self.model.window_queue_tasks_list = self.model.tsp.get_list()
-        #Frist init for the Main_Panel
-        self.model.cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+
         self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
 
-        # Enable TaskSpooler check
-        timer_thread_get_taskspooler_tasks_list = threading.Thread(target=self.refresh_data)
-        timer_thread_get_taskspooler_tasks_list.daemon = True
-        timer_thread_get_taskspooler_tasks_list.start()
+        # Enable Data Refresh
+        refresh_data_thread = threading.Thread(target=self.refresh_data)
+        refresh_data_thread.daemon = True
+        refresh_data_thread.start()
 
         # Enable Hint Splash
         #timer_thread_splash_hints = threading.Thread(target=self.splash_hints)
@@ -370,7 +369,7 @@ class controler_class():
             time.sleep(next_call - time.time())
             self.display_a_hint()
 
-    def refresh_data(self, interval=3):
+    def refresh_data(self, interval=2):
         next_call = time.time()
         while True:
             next_call += interval
@@ -378,7 +377,9 @@ class controler_class():
             # Main Panel importation data
             if self.model.active_window == 0:
                 self.model.up_time = display_up_time()
-                self.model.cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+                self.model.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+                self.model.psutil_virtual_memory = psutil.virtual_memory()
+                self.model.psutil_swap_memory = psutil.swap_memory()
                 self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
                 self.viewer.display_method_by_window[self.model.active_window]()
                 self.model.main_panel_sub_win.refresh()
