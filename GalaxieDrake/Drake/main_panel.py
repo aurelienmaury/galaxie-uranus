@@ -115,7 +115,7 @@ class MainPanel(object):
                 self.parent.addstr(
                     line_number,
                     (self.x_parent_max - 1) / 2,
-                    str("|"),
+                    str(""),
                     curses.color_pair(3) | curses.A_BOLD
                 )
 

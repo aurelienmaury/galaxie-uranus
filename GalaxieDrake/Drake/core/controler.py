@@ -18,7 +18,7 @@ from ..transcoder import HandBrake
 from ..events import *
 from ..taskspooler import TaskSpooler
 from ..utility import display_up_time
-
+from ..utility import bytes2human
 
 class controler_class():
     def __init__(self, screen, viewer, model):
@@ -378,8 +378,31 @@ class controler_class():
             if self.model.active_window == 0:
                 self.model.up_time = display_up_time()
                 self.model.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+                # Refresh Memory information
                 self.model.psutil_virtual_memory = psutil.virtual_memory()
+                memory_used = self.model.psutil_virtual_memory.used
+                memory_used -= self.model.psutil_virtual_memory.cached + self.model.psutil_virtual_memory.buffers
+                memory_free = self.model.psutil_virtual_memory.total - memory_used
+                self.model.mem_summary_text = ''
+                self.model.mem_summary_text += str('Used ')
+                self.model.mem_summary_text += str(bytes2human(memory_used))
+                self.model.mem_summary_text += str(', ')
+                self.model.mem_summary_text += str('Free ')
+                self.model.mem_summary_text += str(bytes2human(memory_free))
+                self.model.mem_summary_text += str(', ')
+                self.model.mem_summary_text += str('Total ')
+                self.model.mem_summary_text += str(bytes2human(self.model.psutil_virtual_memory.total))
+                # Refresh Swap information
                 self.model.psutil_swap_memory = psutil.swap_memory()
+                self.model.swap_summary_text = ''
+                self.model.swap_summary_text += str('Used ')
+                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.used))
+                self.model.swap_summary_text += str(', ')
+                self.model.swap_summary_text += str('Free ')
+                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.total - self.model.psutil_swap_memory.used))
+                self.model.swap_summary_text += str(', ')
+                self.model.swap_summary_text += str('Total ')
+                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.total))
                 self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
                 self.viewer.display_method_by_window[self.model.active_window]()
                 self.model.main_panel_sub_win.refresh()

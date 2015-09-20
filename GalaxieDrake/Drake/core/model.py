@@ -190,26 +190,35 @@ class model_class():
         # Main Panel
         self.up_time = ""
         self.main_panel_item_it_can_be_display = 0
-        self.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
-        self.psutil_swap_memory = psutil.swap_memory()
-        self.psutil_virtual_memory = psutil.virtual_memory()
 
         self.cpu_label_text = 'CPU'
         self.mem_label_text = 'Mem  '
         self.swap_label_text = 'Swap '
 
+        self.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
         self.processor_summary_text = get_processor_info()
 
+        self.psutil_virtual_memory = psutil.virtual_memory()
+        memory_used = self.psutil_virtual_memory.used
+        memory_used -= self.psutil_virtual_memory.cached + self.psutil_virtual_memory.buffers
+        memory_free = self.psutil_virtual_memory.total - memory_used
         self.mem_summary_text = ''
         self.mem_summary_text += str('Used ')
-        self.mem_summary_text += str(bytes2human(self.psutil_virtual_memory.used - (self.psutil_virtual_memory.cached + self.psutil_virtual_memory.buffers )))
+        self.mem_summary_text += str(bytes2human(memory_used))
+        self.mem_summary_text += str(', ')
+        self.mem_summary_text += str('Free ')
+        self.mem_summary_text += str(bytes2human(memory_free))
         self.mem_summary_text += str(', ')
         self.mem_summary_text += str('Total ')
         self.mem_summary_text += str(bytes2human(self.psutil_virtual_memory.total))
 
+        self.psutil_swap_memory = psutil.swap_memory()
         self.swap_summary_text = ''
         self.swap_summary_text += str('Used ')
         self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.used))
+        self.swap_summary_text += str(', ')
+        self.swap_summary_text += str('Free ')
+        self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.total - self.psutil_swap_memory.used))
         self.swap_summary_text += str(', ')
         self.swap_summary_text += str('Total ')
         self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.total))
