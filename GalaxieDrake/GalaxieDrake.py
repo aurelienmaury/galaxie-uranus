@@ -6,8 +6,8 @@ import Drake
 import curses
 
 def main(screen):
-    model=Drake.model_class()
-    viewer=Drake.viewer_class([
+    model = Drake.model_class()
+    viewer = Drake.ViewerClass([
         "Help",
         "Source",
         "Summary",
@@ -18,9 +18,9 @@ def main(screen):
         "Tags",
         "Encode",
         "Quit"
-    ],screen,model)
+    ], screen, model)
 
-    Drake.controler_class(screen,viewer,model)
+    Drake.controler_class(screen, viewer,model)
 
 if __name__ == '__main__':
     try:
