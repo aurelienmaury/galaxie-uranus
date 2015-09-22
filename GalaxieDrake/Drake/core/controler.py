@@ -57,7 +57,6 @@ class controler_class():
         self.window_change_events = {
             curses.KEY_F1: lambda: self.on_window_change(1, "The User Pressed F1"),
             curses.KEY_F2: lambda: self.on_window_change(2, "The User Pressed F2"),
-            curses.KEY_F3: lambda: self.on_window_change(3, "The User Pressed F3"),
             curses.KEY_F4: lambda: self.on_window_change(4, "The User Pressed F4"),
             curses.KEY_F5: lambda: self.on_window_change(5, "The User Pressed F5"),
             curses.KEY_F6: lambda: self.on_window_change(6, "The User Pressed F6"),
@@ -90,7 +89,7 @@ class controler_class():
                     input_event = None
                     self.model.active_window = self.model.last_window
 
-            # Control of Source Box
+            # Control of File Selector - Source Box
             if self.model.active_window == 2 and not self.model.display_history_menu == 1:
                 if input_event == 27:
                     self.control_echap(input_event)
@@ -110,7 +109,12 @@ class controler_class():
                     else:
                         if self.model.window_source_item_list_scroll + self.model.window_source_item_it_can_be_display + 1 < self.model.window_source_ls_dir_item_number <= self.model.window_source_ls_dir_item_number:
                             self.model.window_source_item_list_scroll += 1
-
+                elif input_event == curses.KEY_F3:
+                    #self.model.window_source_selected_item_list_value[0]
+                    self.viewer.display_message(
+                        "Prepare " +
+                        os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
+                    )
                 elif input_event == curses.KEY_ENTER or input_event == ord("\n"):
 
                     if os.path.isdir(self.model.window_source_selected_item_list_value[0]):
@@ -130,8 +134,13 @@ class controler_class():
                         filename = os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
                         if filename.endswith(self.model.video_file_extensions):
                             self.viewer.display_message("Scaning ... ")
-                            self.model.transcoder = HandBrake(filename, max_height=720, enable_multi_language=0,
-                                                              lang1='fra', lang2='eng')
+                            self.model.transcoder = HandBrake(
+                                filename,
+                                max_height=720,
+                                enable_multi_language=0,
+                                lang1='fra',
+                                lang2='eng'
+                            )
                             self.model.active_window = 3
                             self.viewer.display_message("")
                         else:

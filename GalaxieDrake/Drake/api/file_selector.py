@@ -131,133 +131,134 @@ class FileSelect(object):
         mtime_collumn_width = 19
         name_collumn_width = self.XParentMax - (size_collumn_width + mtime_collumn_width + 2)
 
-        #History arrow for navigate inside historty directory list
-        self.model.window_source_history_dir_list_prev_object = clickable_sort_by_text(
-            self.Parent,
-            0,
-            x_pos_line_start,
-            "<",
-            curses.color_pair(3)
-        )
-        self.model.window_source_history_dir_list_object = clickable_sort_by_text(
-            self.Parent,
-            0,
-            self.XParentMax - 6,
-            ".[^]",
-            curses.color_pair(3)
-        )
-        self.model.window_source_history_dir_list_next_object = clickable_sort_by_text(
-            self.Parent,
-            0,
-            self.XParentMax - 2,
-           ">",
-           curses.color_pair(3)
-        )
-
-        #Verify which short type is selected and display ('n) (,n) ('s) (,s) ('m) (,m)
-        #Check if it have to display ('n) (,n)
-        if self.model.window_source_sort_by_name == 1:
-            if self.model.window_source_sort_name_order == 1:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    "'",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            else:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    ",",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            self.Parent.addstr(
-                y_pos_titles,
-                self.X + 2,
-                str(self.model.window_source_sort_name_letter),
-                curses.color_pair(7) | curses.A_BOLD
+        if self.YParentMax > 2:
+            #History arrow for navigate inside historty directory list
+            self.model.window_source_history_dir_list_prev_object = clickable_sort_by_text(
+                self.Parent,
+                0,
+                x_pos_line_start,
+                "<",
+                curses.color_pair(3)
             )
-        #Check if it have to display ('s) (,s)
-        elif self.model.window_source_sort_by_size == 1:
-            if self.model.window_source_sort_size_order == 1:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    "'",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            else:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    ",",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            self.Parent.addstr(
-                y_pos_titles,
-                self.X + 2,
-                str(self.model.window_source_sort_size_letter),
-                curses.color_pair(7) | curses.A_BOLD
+            self.model.window_source_history_dir_list_object = clickable_sort_by_text(
+                self.Parent,
+                0,
+                self.XParentMax - 6,
+                ".[^]",
+                curses.color_pair(3)
             )
-        #Check if it have to display ('m) (,m)
-        elif self.model.window_source_sort_by_mtime == 1:
-            if self.model.window_source_sort_mtime_order == 0:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    "'",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            else:
-                self.Parent.addstr(
-                    y_pos_titles,
-                    x_pos_line_start,
-                    ",",
-                    curses.color_pair(7) | curses.A_BOLD
-                )
-            self.Parent.addstr(
-                y_pos_titles,
-                self.X + 2,
-                str(self.model.window_source_sort_mtime_letter),
-                curses.color_pair(7) | curses.A_BOLD
+            self.model.window_source_history_dir_list_next_object = clickable_sort_by_text(
+                self.Parent,
+                0,
+                self.XParentMax - 2,
+               ">",
+               curses.color_pair(3)
             )
 
-        #Creat 3 clickable elements for "Name", "Size", "Modify Time"
-        self.model.window_source_name_text_object = clickable_sort_by_text(
-            self.Parent,
-            y_pos_titles,
-            ((self.XParentMax - mtime_collumn_width - size_collumn_width) / 2) - (len(self.name_text) / 2),
-            self.name_text,
-            curses.color_pair(7) | curses.A_BOLD
-        )
-        self.model.window_source_size_text_object = clickable_sort_by_text(
-            self.Parent,
-            y_pos_titles,
-            ((self.XParentMax - mtime_collumn_width - size_collumn_width) + 1) + ((len(self.size_text) - 1) / 2),
-            self.size_text,
-            curses.color_pair(7) | curses.A_BOLD
-        )
-        self.model.window_source_mtime_text_object = clickable_sort_by_text(
-            self.Parent,
-            y_pos_titles,
-            (self.XParentMax - mtime_collumn_width + 1) + ((len(str(self.mtime_text)) - 1) / 2) - 4,
-            self.mtime_text,
-            curses.color_pair(7) | curses.A_BOLD
-            )
-        #Creat 2 Vertical Lines for creat collumns for Name, Size and Modify Time
+            #Verify which short type is selected and display ('n) (,n) ('s) (,s) ('m) (,m)
+            #Check if it have to display ('n) (,n)
+            if self.model.window_source_sort_by_name == 1:
+                if self.model.window_source_sort_name_order == 1:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        "'",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                else:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        ",",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                self.Parent.addstr(
+                    y_pos_titles,
+                    self.X + 2,
+                    str(self.model.window_source_sort_name_letter),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            #Check if it have to display ('s) (,s)
+            elif self.model.window_source_sort_by_size == 1:
+                if self.model.window_source_sort_size_order == 1:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        "'",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                else:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        ",",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                self.Parent.addstr(
+                    y_pos_titles,
+                    self.X + 2,
+                    str(self.model.window_source_sort_size_letter),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            #Check if it have to display ('m) (,m)
+            elif self.model.window_source_sort_by_mtime == 1:
+                if self.model.window_source_sort_mtime_order == 0:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        "'",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                else:
+                    self.Parent.addstr(
+                        y_pos_titles,
+                        x_pos_line_start,
+                        ",",
+                        curses.color_pair(7) | curses.A_BOLD
+                    )
+                self.Parent.addstr(
+                    y_pos_titles,
+                    self.X + 2,
+                    str(self.model.window_source_sort_mtime_letter),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
 
-        self.Parent.vline(
-            y_pos_titles,
-            self.XParentMax - mtime_collumn_width,
-            curses.ACS_VLINE,
-            self.YParentMax - 3
-        )
-        self.Parent.vline(
-            y_pos_titles,
-            self.XParentMax - mtime_collumn_width - size_collumn_width,
-            curses.ACS_VLINE,
-            self.YParentMax - 3
-        )
+            #Creat 3 clickable elements for "Name", "Size", "Modify Time"
+            self.model.window_source_name_text_object = clickable_sort_by_text(
+                self.Parent,
+                y_pos_titles,
+                ((self.XParentMax - mtime_collumn_width - size_collumn_width) / 2) - (len(self.name_text) / 2),
+                self.name_text,
+                curses.color_pair(7) | curses.A_BOLD
+            )
+            self.model.window_source_size_text_object = clickable_sort_by_text(
+                self.Parent,
+                y_pos_titles,
+                ((self.XParentMax - mtime_collumn_width - size_collumn_width) + 1) + ((len(self.size_text) - 1) / 2),
+                self.size_text,
+                curses.color_pair(7) | curses.A_BOLD
+            )
+            self.model.window_source_mtime_text_object = clickable_sort_by_text(
+                self.Parent,
+                y_pos_titles,
+                (self.XParentMax - mtime_collumn_width + 1) + ((len(str(self.mtime_text)) - 1) / 2) - 4,
+                self.mtime_text,
+                curses.color_pair(7) | curses.A_BOLD
+                )
+            #Creat 2 Vertical Lines for creat collumns for Name, Size and Modify Time
+
+            self.Parent.vline(
+                y_pos_titles,
+                self.XParentMax - mtime_collumn_width,
+                curses.ACS_VLINE,
+                self.YParentMax - 3
+            )
+            self.Parent.vline(
+                y_pos_titles,
+                self.XParentMax - mtime_collumn_width - size_collumn_width,
+                curses.ACS_VLINE,
+                self.YParentMax - 3
+            )
         count = 0
         # FOR qui occupe toute la fenetre avec des listes de fichiers
         for I in range(self.Y + 2, self.YParentMax - 3):
@@ -409,28 +410,29 @@ class FileSelect(object):
                             curses.color_pair(3) | curses.A_BOLD
                             )
             count += 1
-
-        self.Parent.hline(
-            self.YParentMax - 3,
-            x_pos_line_start,
-            curses.ACS_HLINE,
-            self.XParentMax - 2
-        )
-        # If the item value is '..' it use Directory setting
-        if self.model.window_source_selected_item_list_value[0] == "..":
-            self.Parent.addstr(
-                self.YParentMax - 2,
+        if self.YParentMax > 3:
+            self.Parent.hline(
+                self.YParentMax - 3,
                 x_pos_line_start,
-                self.model.window_source_rep_sup_text,
-                curses.color_pair(3)
+                curses.ACS_HLINE,
+                self.XParentMax - 2
             )
-        else:
-            self.Parent.addstr(
-                self.YParentMax - 2,
-                x_pos_line_start,
-                resize_text(self.model.window_source_selected_item_list_value[0], self.XParentMax-2),
-                curses.color_pair(3)
-            )
+        if self.YParentMax > 2:
+            # If the item value is '..' it use Directory setting
+            if self.model.window_source_selected_item_list_value[0] == "..":
+                self.Parent.addstr(
+                    self.YParentMax - 2,
+                    x_pos_line_start,
+                    self.model.window_source_rep_sup_text,
+                    curses.color_pair(3)
+                )
+            else:
+                self.Parent.addstr(
+                    self.YParentMax - 2,
+                    x_pos_line_start,
+                    resize_text(self.model.window_source_selected_item_list_value[0], self.XParentMax-2),
+                    curses.color_pair(3)
+                )
         # Add Disk usage
         disk_space_line = disk_usage(os.getcwd())
         self.Parent.addstr(

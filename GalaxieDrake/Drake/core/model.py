@@ -8,6 +8,7 @@ import psutil
 from ..utility import bytes2human
 from ..utility import get_processor_info
 from ..utility import disk_free
+from Drake.plugins.task_spooler_summary import TaskSpoolerSummary
 
 #######################
 ###    THE MODEL    ###
@@ -96,6 +97,26 @@ class model_class():
             '.vob',
             '.wmv'
         )
+
+        self.searching_extension_list = [
+            '*.ts',
+            '*.mkv',
+            '*.3g2',
+            '*.3gp',
+            '*.asf',
+            '*.asx',
+            '*.avi',
+            '*.flv',
+            '*.m4v',
+            '*.mov',
+            '*.mp4',
+            '*.mpg',
+            '*.rm',
+            '*.srt',
+            '*.swf',
+            '*.vob',
+            '*.wmv'
+        ]
 
         self.windows_button_underline = 2
         self.window_quit_yesno = 1

@@ -131,22 +131,23 @@ class ViewerClass(object):
     def display_info(self, message):
         self.model.last_info = message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
-        display_info_sub_win = self.screen.subwin(1, screen_num_cols, screen_num_lines - 3, 0)
-        _, display_info_sub_win_num_cols = display_info_sub_win.getmaxyx()
-        if curses.has_colors():
-            display_info_sub_win.insstr(0, 0, str(" " * int(display_info_sub_win_num_cols)), curses.color_pair(2))
-            if len(message) >= display_info_sub_win_num_cols - 1:
-                start, end = message[:display_info_sub_win_num_cols - 1], message[display_info_sub_win_num_cols - 1:]
-                display_info_sub_win.addstr(0, 0, str(start))
-                display_info_sub_win.insstr(0, display_info_sub_win_num_cols - 1, str(end[:1]))
-            else:
-                display_info_sub_win.addstr(0, 0, str(message))
-        display_info_sub_win.refresh()
+        if screen_num_lines - 2 >= 2:
+            display_info_sub_win = self.screen.subwin(1, screen_num_cols, screen_num_lines - 3, 0)
+            _, display_info_sub_win_num_cols = display_info_sub_win.getmaxyx()
+            if curses.has_colors():
+                display_info_sub_win.insstr(0, 0, str(" " * int(display_info_sub_win_num_cols)), curses.color_pair(2))
+                if len(message) >= display_info_sub_win_num_cols - 1:
+                    start, end = message[:display_info_sub_win_num_cols - 1], message[display_info_sub_win_num_cols - 1:]
+                    display_info_sub_win.addstr(0, 0, str(start))
+                    display_info_sub_win.insstr(0, display_info_sub_win_num_cols - 1, str(end[:1]))
+                else:
+                    display_info_sub_win.addstr(0, 0, str(message))
+            display_info_sub_win.refresh()
 
     def display_bottom_button(self):
         item_list = self.model.bottom_button_list
         labels_end_coord = ['', '', '', '', '', '', '', '', '', '', '', '']
-        screen_num_lines, _ = self.screen.getmaxyx()
+        screen_num_lines, screen_num_columns = self.screen.getmaxyx()
         bottom_menu_box = self.screen.subwin(0, 0, screen_num_lines - 1, 0)
         _, bottom_menu_box_num_cols = bottom_menu_box.getmaxyx()
         bottom_menu_box_num_cols -= 1
@@ -194,20 +195,54 @@ class ViewerClass(object):
         count = 0
         for num in range(0, max_can_be_display-1):
             if count == 0:
-                bottom_menu_box.addstr(0, 0, "")
-                bottom_menu_box.addstr(0, 0, " ", curses.COLOR_WHITE | curses.COLOR_BLACK)
-                bottom_menu_box.addstr(str(count+1), curses.COLOR_WHITE | curses.COLOR_BLACK)
-                bottom_menu_box.addstr(str(item_list[count]), curses.color_pair(1))
+                bottom_menu_box.addstr(
+                    0,
+                    0,
+                    ""
+                )
+                bottom_menu_box.addstr(
+                    0,
+                    0,
+                    " ",
+                    curses.COLOR_WHITE | curses.COLOR_BLACK
+                )
+                bottom_menu_box.addstr(
+                    str(count+1),
+                    curses.COLOR_WHITE | curses.COLOR_BLACK
+                )
+                bottom_menu_box.addstr(
+                    str(item_list[count]),
+                    curses.color_pair(1)
+                )
 
             elif 1 <= count < 9:
-                bottom_menu_box.addstr(0, (labels_end_coord[count-1] + 0), " ", curses.COLOR_WHITE | curses.COLOR_BLACK)
-                bottom_menu_box.addstr(str(count+1), curses.COLOR_WHITE | curses.COLOR_BLACK)
-                bottom_menu_box.addstr(str(item_list[count]), curses.color_pair(1))
+                if screen_num_columns - (labels_end_coord[count-1] + 0) >= len(item_list[count]) + 3:
+                    bottom_menu_box.addstr(
+                        0,
+                        (labels_end_coord[count-1] + 0),
+                        " ",
+                        curses.COLOR_WHITE | curses.COLOR_BLACK
+                    )
+                    bottom_menu_box.addstr(
+                        str(count+1),
+                        curses.COLOR_WHITE | curses.COLOR_BLACK
+                    )
+                    bottom_menu_box.addstr(
+                        str(item_list[count]),
+                        curses.color_pair(1)
+                    )
             elif count >= 9:
-                a=1
-                bottom_menu_box.addstr(0, (labels_end_coord[count-1] + 1), str(count + 1),
-                                       curses.COLOR_WHITE | curses.COLOR_BLACK)
-                bottom_menu_box.addstr(item_list[count], curses.color_pair(1))
+                if screen_num_columns - (labels_end_coord[count-1] + 1) >= len(item_list[count]) + 3:
+                    bottom_menu_box.addstr(
+                        0,
+                        (labels_end_coord[count-1] + 1),
+                        str(count + 1),
+                        curses.COLOR_WHITE | curses.COLOR_BLACK
+                    )
+                    bottom_menu_box.addstr(
+                        item_list[count],
+                        curses.color_pair(1)
+                    )
             count += 1
         #bottom_menu_box.refresh()
 
@@ -506,41 +541,43 @@ class ViewerClass(object):
         self.model.bottom_button_list = self.model.main_panel_button_list
         #Creat the contener
         parent_max_lines, parent_max_cols = parent.getmaxyx()
-        panel_subwin = self.screen.subwin(parent_max_lines - 4, 0, 1, 0)
-        panel_max_lines, max_cols = panel_subwin.getmaxyx()
-        if curses.has_colors():
-            for I in range(1, panel_max_lines - 1):
-                panel_subwin.addstr(
-                    I,
-                    1,
-                    str(" " * int(max_cols - 2)),
-                    curses.color_pair(3)
-                )
-            panel_subwin.bkgdset(ord(' '), curses.color_pair(3))
-        panel_subwin.box()
-        self.model.main_panel_sub_win = panel_subwin
-        self.model.main_panel = MainPanel(
-            self.model.main_panel_sub_win,
-            0,
-            0,
-            model
-        )
+        if parent_max_lines - 4 >= 2:
+            panel_subwin = self.screen.subwin(parent_max_lines - 4, 0, 1, 0)
+            panel_max_lines, max_cols = panel_subwin.getmaxyx()
+            if curses.has_colors():
+                for I in range(1, panel_max_lines - 1):
+                    panel_subwin.addstr(
+                        I,
+                        1,
+                        str(" " * int(max_cols - 2)),
+                        curses.color_pair(3)
+                    )
+                panel_subwin.bkgdset(ord(' '), curses.color_pair(3))
+            panel_subwin.box()
+            self.model.main_panel_sub_win = panel_subwin
+            self.model.main_panel = MainPanel(
+                self.model.main_panel_sub_win,
+                0,
+                0,
+                model
+            )
 
     def display_source_panel(self, window_name):
         self.model.bottom_button_list = self.model.file_selector_button_list
         num_lines, _ = self.screen.getmaxyx()
         # Creat a sub window
-        display_source_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
-        display_source_box_num_lines, display_source_box_num_cols = display_source_box.getmaxyx()
-        # Put the Background color
-        if curses.has_colors():
-            for I in range(1, display_source_box_num_lines - 1):
-                display_source_box.addstr(I, 1, str(" " * int(display_source_box_num_cols - 2)), curses.color_pair(3))
-            display_source_box.bkgdset(ord(' '), curses.color_pair(3))
+        if num_lines - 4 >= 2:
+            display_source_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
+            display_source_box_num_lines, display_source_box_num_cols = display_source_box.getmaxyx()
+            # Put the Background color
+            if curses.has_colors():
+                for I in range(1, display_source_box_num_lines - 1):
+                    display_source_box.addstr(I, 1, str(" " * int(display_source_box_num_cols - 2)), curses.color_pair(3))
+                display_source_box.bkgdset(ord(' '), curses.color_pair(3))
 
-        display_source_box.addstr(0, 1, window_name)
-        display_source_box.box()
-        self.model.window_source_file_selector = FileSelect(display_source_box, 0, 0, self.model)
+            display_source_box.addstr(0, 1, window_name)
+            display_source_box.box()
+            self.model.window_source_file_selector = FileSelect(display_source_box, 0, 0, self.model)
 
     def display_queue_box(self, window_name):
         self.model.bottom_button_list = self.model.taskspooler_button_list
