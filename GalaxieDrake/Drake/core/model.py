@@ -7,6 +7,7 @@ Created on 4 avr. 2015
 import psutil
 from ..utility import bytes2human
 from ..utility import get_processor_info
+from ..utility import disk_free
 
 #######################
 ###    THE MODEL    ###
@@ -194,34 +195,36 @@ class model_class():
         self.cpu_label_text = 'CPU'
         self.mem_label_text = 'Mem  '
         self.swap_label_text = 'Swap '
+        self.used_label_text = 'Used'
+        self.free_label_text = 'Free'
+        self.total_label_text = 'Total'
+        self.user_label_text = 'user'
+        self.nice_label_text = 'nice'
+        self.system_label_text = 'system'
+        self.idle_label_text = 'idle'
+        self.iowait_label_text = 'iowait'
+        self.memory_title_text = "Virtual and Swap Memory's"
+        self.disks_title_text = 'Mounted System Files'
 
         self.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+        self.psutil_cpu_times_percent_list = psutil.cpu_times_percent(interval=1, percpu=False)
         self.processor_summary_text = get_processor_info()
 
         self.psutil_virtual_memory = psutil.virtual_memory()
-        memory_used = self.psutil_virtual_memory.used
-        memory_used -= self.psutil_virtual_memory.cached + self.psutil_virtual_memory.buffers
-        memory_free = self.psutil_virtual_memory.total - memory_used
-        self.mem_summary_text = ''
-        self.mem_summary_text += str('Used ')
-        self.mem_summary_text += str(bytes2human(memory_used))
-        self.mem_summary_text += str(', ')
-        self.mem_summary_text += str('Free ')
-        self.mem_summary_text += str(bytes2human(memory_free))
-        self.mem_summary_text += str(', ')
-        self.mem_summary_text += str('Total ')
-        self.mem_summary_text += str(bytes2human(self.psutil_virtual_memory.total))
+        self.memory_used = self.psutil_virtual_memory.used
+        self.memory_cache_plus_buffer = self.psutil_virtual_memory.cached + self.psutil_virtual_memory.buffers
+        self.memory_free = self.psutil_virtual_memory.total - self.memory_used
+
+        self.memory_used = bytes2human(self.memory_used - self.memory_cache_plus_buffer)
+        self.memory_free = bytes2human(self.memory_free)
+        self.memory_total = bytes2human(self.psutil_virtual_memory.total)
 
         self.psutil_swap_memory = psutil.swap_memory()
-        self.swap_summary_text = ''
-        self.swap_summary_text += str('Used ')
-        self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.used))
-        self.swap_summary_text += str(', ')
-        self.swap_summary_text += str('Free ')
-        self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.total - self.psutil_swap_memory.used))
-        self.swap_summary_text += str(', ')
-        self.swap_summary_text += str('Total ')
-        self.swap_summary_text += str(bytes2human(self.psutil_swap_memory.total))
+        self.swap_used = bytes2human(self.psutil_swap_memory.used)
+        self.swap_free = bytes2human(self.psutil_swap_memory.total - self.psutil_swap_memory.used)
+        self.swap_total = bytes2human(self.psutil_swap_memory.total)
+
+        self.disk_partition_list = disk_free()
 
         self.taskspooler_summary = ''
         self.taskspooler_summary_list = list()
@@ -231,6 +234,7 @@ class model_class():
         self.taskspooler_queued_text = "Queued"
         self.taskspooler_finished_text = "Finished"
         self.taskspooler_finished_with_error_text = "Error"
+
 
         # Vrac
         self.transcoder = -1

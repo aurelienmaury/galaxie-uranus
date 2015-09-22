@@ -7,7 +7,7 @@ Created on 4 avr. 2015
 '''
 import curses
 
-from Drake.queue import Queue
+from Drake.queue_panel import Queue
 from Drake.main_panel import MainPanel
 from Drake.api.button import CursesButton
 from Drake.api.file_selector import FileSelect

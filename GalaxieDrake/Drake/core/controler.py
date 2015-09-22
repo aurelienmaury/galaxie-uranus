@@ -19,6 +19,7 @@ from ..events import *
 from ..taskspooler import TaskSpooler
 from ..utility import display_up_time
 from ..utility import bytes2human
+from ..utility import disk_free
 
 class controler_class():
     def __init__(self, screen, viewer, model):
@@ -369,42 +370,35 @@ class controler_class():
             time.sleep(next_call - time.time())
             self.display_a_hint()
 
-    def refresh_data(self, interval=2):
+    def refresh_data(self, interval=3):
         next_call = time.time()
         while True:
             next_call += interval
             time.sleep(next_call - time.time())
             # Main Panel importation data
             if self.model.active_window == 0:
+                # Uptime
                 self.model.up_time = display_up_time()
+                # CPUs
                 self.model.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
+                self.model.psutil_cpu_times_percent_list = psutil.cpu_times_percent(interval=1, percpu=False)
                 # Refresh Memory information
                 self.model.psutil_virtual_memory = psutil.virtual_memory()
-                memory_used = self.model.psutil_virtual_memory.used
-                memory_used -= self.model.psutil_virtual_memory.cached + self.model.psutil_virtual_memory.buffers
-                memory_free = self.model.psutil_virtual_memory.total - memory_used
-                self.model.mem_summary_text = ''
-                self.model.mem_summary_text += str('Used ')
-                self.model.mem_summary_text += str(bytes2human(memory_used))
-                self.model.mem_summary_text += str(', ')
-                self.model.mem_summary_text += str('Free ')
-                self.model.mem_summary_text += str(bytes2human(memory_free))
-                self.model.mem_summary_text += str(', ')
-                self.model.mem_summary_text += str('Total ')
-                self.model.mem_summary_text += str(bytes2human(self.model.psutil_virtual_memory.total))
+                self.model.memory_used = self.model.psutil_virtual_memory.used
+                self.model.memory_cache_plus_buffer = self.model.psutil_virtual_memory.cached + self.model.psutil_virtual_memory.buffers
+                self.model.memory_free = self.model.psutil_virtual_memory.total - self.model.memory_used
+                self.model.memory_used = bytes2human(self.model.memory_used - self.model.memory_cache_plus_buffer)
+                self.model.memory_free = bytes2human(self.model.memory_free)
+                self.model.memory_total = bytes2human(self.model.psutil_virtual_memory.total)
                 # Refresh Swap information
                 self.model.psutil_swap_memory = psutil.swap_memory()
-                self.model.swap_summary_text = ''
-                self.model.swap_summary_text += str('Used ')
-                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.used))
-                self.model.swap_summary_text += str(', ')
-                self.model.swap_summary_text += str('Free ')
-                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.total - self.model.psutil_swap_memory.used))
-                self.model.swap_summary_text += str(', ')
-                self.model.swap_summary_text += str('Total ')
-                self.model.swap_summary_text += str(bytes2human(self.model.psutil_swap_memory.total))
+                self.model.swap_used = bytes2human(self.model.psutil_swap_memory.used)
+                self.model.swap_free = bytes2human(self.model.psutil_swap_memory.total - self.model.psutil_swap_memory.used)
+                self.model.swap_total = bytes2human(self.model.psutil_swap_memory.total)
+                # TaskSpooler
                 self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
                 self.viewer.display_method_by_window[self.model.active_window]()
+                # Refresh the parent window
                 self.model.main_panel_sub_win.refresh()
             elif self.model.active_window == 4:
                 if not sorted(self.model.tsp.get_list()) == sorted(self.model.window_queue_tasks_list):

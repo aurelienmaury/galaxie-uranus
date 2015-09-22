@@ -263,3 +263,35 @@ def display_up_time():
         text_to_return += str(str('{0:02d}'.format(minutes)) + ":")
         text_to_return += str(str('{0:02d}'.format(seconds)) + "")
     return text_to_return
+
+
+def disk_free():
+    final_list = list()
+    cmd = ['df', '-h']
+    try:
+        output = subprocess.check_output(cmd)
+        if output:
+            output = output.split('\n')
+            for line in output:
+                tmp_list = re.split(r'\s{2,}', line)
+                # Clean the result of df command line
+                if len(tmp_list) > 1 and not tmp_list[0] == 'udev' and not tmp_list[0] == 'tmpfs':
+                    # Split again mount and percent
+                    last = tmp_list[4]
+                    percent, mount_point = re.split(r'\s', last)
+                    tmp_list[4] = percent[:-1]
+                    tmp_list.append(mount_point)
+                    final_list.append(tmp_list)
+
+            # Format mount point by add space for creat collumn
+            maxi = 0
+            for A in final_list:
+                if len(A[5]) > maxi:
+                    maxi = len(A[5])
+
+            for A in final_list:
+                A[5] += ' ' * (maxi - len(A[5]))
+
+            return final_list
+    except:
+        return "Cannot open df -h"

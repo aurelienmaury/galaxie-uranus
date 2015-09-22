@@ -209,7 +209,7 @@ class Queue(object):
                 # It consiter like a shell all is not output with exit(0) have make a error
                 if not state_text == "running" and not state_text == "queued":
                     if not str(e_level_text) == "0":
-                        line_color = curses.color_pair(10)
+                        line_color = curses.color_pair(9)
                         e_level_text = "Error"
                     else:
                         e_level_text = "Ok"
