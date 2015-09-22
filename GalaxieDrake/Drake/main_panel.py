@@ -155,78 +155,79 @@ class MainPanel(object):
         x_pos_user_label -= len(self.model.user_label_text)
 
         if self.y_parent_max - 1 > line_number:
-            self.parent.addstr(
-                line_number,
-                x_pos,
-                str(self.model.processor_summary_text),
-                curses.color_pair(3)
-            )
+            if len(self.model.processor_summary_text) + 2 <= x_pos_user_label:
+                self.parent.addstr(
+                    line_number,
+                    x_pos,
+                    str(self.model.processor_summary_text),
+                    curses.color_pair(3)
+                )
             # user 1.5%, nice 0.0%, system 0.5%, idle 96.5%, iowait 1.5%
-            self.parent.addstr(
-                line_number,
-                x_pos_user_label,
-                str(self.model.user_label_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                x_pos_user_value,
-                str(str(self.model.psutil_cpu_times_percent_list.user) + '%'),
-                curses.color_pair(3) | curses.A_BOLD
-            )
-
-            self.parent.addstr(
-                line_number,
-                x_pos_nice_label,
-                str(self.model.nice_label_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                x_pos_nice_value,
-                str(str(self.model.psutil_cpu_times_percent_list.nice) + '%'),
-                curses.color_pair(3) | curses.A_BOLD
-            )
-
-            self.parent.addstr(
-                line_number,
-                x_pos_system_label,
-                str(self.model.system_label_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                x_pos_system_value,
-                str(str(self.model.psutil_cpu_times_percent_list.system) + '%'),
-                curses.color_pair(3) | curses.A_BOLD
-            )
-
-            self.parent.addstr(
-                line_number,
-                x_pos_idle_label,
-                str(self.model.idle_label_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                x_pos_idle_value,
-                str(str(self.model.psutil_cpu_times_percent_list.idle) + '%'),
-                curses.color_pair(3) | curses.A_BOLD
-            )
-
-            self.parent.addstr(
-                line_number,
-                x_pos_iowait_label,
-                str(self.model.iowait_label_text),
-                curses.color_pair(3)
-            )
-
-            self.parent.addstr(
-                line_number,
-                x_pos_iowait_value,
-                str(str(self.model.psutil_cpu_times_percent_list.iowait) + '%'),
-                curses.color_pair(3) | curses.A_BOLD
-            )
+            if not x_pos_user_label + 2 <= 2:
+                self.parent.addstr(
+                    line_number,
+                    x_pos_user_label,
+                    str(self.model.user_label_text),
+                    curses.color_pair(3)
+                )
+                self.parent.addstr(
+                    line_number,
+                    x_pos_user_value,
+                    str(str(self.model.psutil_cpu_times_percent_list.user) + '%'),
+                    curses.color_pair(3) | curses.A_BOLD
+                )
+            if not x_pos_nice_label + 2 <= 2:
+                self.parent.addstr(
+                    line_number,
+                    x_pos_nice_label,
+                    str(self.model.nice_label_text),
+                    curses.color_pair(3)
+                )
+                self.parent.addstr(
+                    line_number,
+                    x_pos_nice_value,
+                    str(str(self.model.psutil_cpu_times_percent_list.nice) + '%'),
+                    curses.color_pair(3) | curses.A_BOLD
+                )
+            if not x_pos_system_label + 2 <= 2:
+                self.parent.addstr(
+                    line_number,
+                    x_pos_system_label,
+                    str(self.model.system_label_text),
+                    curses.color_pair(3)
+                )
+                self.parent.addstr(
+                    line_number,
+                    x_pos_system_value,
+                    str(str(self.model.psutil_cpu_times_percent_list.system) + '%'),
+                    curses.color_pair(3) | curses.A_BOLD
+                )
+            if not x_pos_idle_label + 2 <= 2:
+                self.parent.addstr(
+                    line_number,
+                    x_pos_idle_label,
+                    str(self.model.idle_label_text),
+                    curses.color_pair(3)
+                )
+                self.parent.addstr(
+                    line_number,
+                    x_pos_idle_value,
+                    str(str(self.model.psutil_cpu_times_percent_list.idle) + '%'),
+                    curses.color_pair(3) | curses.A_BOLD
+                )
+            if not x_pos_iowait_label + 2 <= 2:
+                self.parent.addstr(
+                    line_number,
+                    x_pos_iowait_label,
+                    str(self.model.iowait_label_text),
+                    curses.color_pair(3)
+                )
+                self.parent.addstr(
+                    line_number,
+                    x_pos_iowait_value,
+                    str(str(self.model.psutil_cpu_times_percent_list.iowait) + '%'),
+                    curses.color_pair(3) | curses.A_BOLD
+                )
 
 
         # CPU Displays

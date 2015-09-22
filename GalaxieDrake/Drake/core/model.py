@@ -204,7 +204,7 @@ class model_class():
         self.idle_label_text = 'idle'
         self.iowait_label_text = 'iowait'
         self.memory_title_text = "Virtual and Swap Memory's"
-        self.disks_title_text = 'Mounted System Files'
+        self.disks_title_text = "Mounted File System's"
 
         self.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
         self.psutil_cpu_times_percent_list = psutil.cpu_times_percent(interval=1, percpu=False)
