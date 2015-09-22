@@ -3,11 +3,13 @@
 
 import traceback
 import Drake
+from Drake.core.model import model_class
+from Drake.core.viewer import ViewerClass
 import curses
 
 def main(screen):
-    model = Drake.model_class()
-    viewer = Drake.ViewerClass([
+    model = model_class()
+    viewer = ViewerClass([
         "Help",
         "Source",
         "Summary",

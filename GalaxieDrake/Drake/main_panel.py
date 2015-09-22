@@ -251,30 +251,34 @@ class MainPanel(object):
         # Title Total Free Used
         line_number += 1
         if self.y_parent_max - 1 > line_number:
-            self.parent.addstr(
-                line_number,
-                x_pos,
-                str(self.model.memory_title_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                column_1_start + 1,
-                str(self.model.total_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
-            self.parent.addstr(
-                line_number,
-                column_3_start + 1,
-                str(self.model.free_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
-            self.parent.addstr(
-                line_number,
-                column_2_start + 1,
-                str(self.model.used_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
+            if not column_1_start + 1 <= len(str(self.model.memory_title_text)):
+                self.parent.addstr(
+                    line_number,
+                    x_pos,
+                    str(self.model.memory_title_text),
+                    curses.color_pair(3)
+                )
+            if not column_1_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_1_start + 1,
+                    str(self.model.total_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            if not column_2_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_2_start + 1,
+                    str(self.model.used_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            if not column_3_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_3_start + 1,
+                    str(self.model.free_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
         # MEM
         line_number += 1
         if self.y_parent_max - 1 > line_number:
@@ -288,42 +292,45 @@ class MainPanel(object):
                 curses.color_pair(10),
                 self.mem_label_text
             )
-            self.parent.vline(
-                line_number,
-                column_1_start,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_1_end - len(self.model.memory_total),
-                str(self.model.memory_total),
-                curses.color_pair(3)
-            )
-            self.parent.vline(
-                line_number,
-                column_1_end,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_2_end - len(self.model.memory_used),
-                str(self.model.memory_used),
-                curses.color_pair(3)
-            )
-            self.parent.vline(
-                line_number,
-                column_2_end,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_3_end - len(self.model.memory_free),
-                str(self.model.memory_free),
-                curses.color_pair(3)
-            )
+            if not column_1_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_1_start,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_1_end - len(self.model.memory_total),
+                    str(self.model.memory_total),
+                    curses.color_pair(3)
+                )
+            if not column_2_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_1_end,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_2_end - len(self.model.memory_used),
+                    str(self.model.memory_used),
+                    curses.color_pair(3)
+                )
+            if not column_3_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_2_end,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_3_end - len(self.model.memory_free),
+                    str(self.model.memory_free),
+                    curses.color_pair(3)
+                )
         # SWAP
         line_number += 1
         if self.y_parent_max - 1 > line_number:
@@ -337,69 +344,77 @@ class MainPanel(object):
                 curses.color_pair(10),
                 self.swap_label_text
             )
-            self.parent.vline(
-                line_number,
-                column_1_start,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_1_end - len(self.model.swap_total),
-                str(self.model.swap_total),
-                curses.color_pair(3)
-            )
-            self.parent.vline(
-                line_number,
-                column_1_end,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_2_end - len(self.model.swap_used),
-                str(self.model.swap_used),
-                curses.color_pair(3)
-            )
-            self.parent.vline(
-                line_number,
-                column_2_end,
-                curses.ACS_VLINE,
-                1
-            )
-            self.parent.addstr(
-                line_number,
-                column_3_end - len(self.model.swap_free),
-                str(self.model.swap_free),
-                curses.color_pair(3)
-            )
+            if not column_1_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_1_start,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_1_end - len(self.model.swap_total),
+                    str(self.model.swap_total),
+                    curses.color_pair(3)
+                )
+            if not column_2_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_1_end,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_2_end - len(self.model.swap_used),
+                    str(self.model.swap_used),
+                    curses.color_pair(3)
+                )
+            if not column_3_start + 1 <= x_pos:
+                self.parent.vline(
+                    line_number,
+                    column_2_end,
+                    curses.ACS_VLINE,
+                    1
+                )
+                self.parent.addstr(
+                    line_number,
+                    column_3_end - len(self.model.swap_free),
+                    str(self.model.swap_free),
+                    curses.color_pair(3)
+                )
         # Title Total Free Used
         line_number += 2
         if self.y_parent_max - 1 > line_number:
-            self.parent.addstr(
-                line_number,
-                x_pos,
-                str(self.model.disks_title_text),
-                curses.color_pair(3)
-            )
-            self.parent.addstr(
-                line_number,
-                column_1_start + 1,
-                str(self.model.total_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
-            self.parent.addstr(
-                line_number,
-                column_3_start + 1,
-                str(self.model.free_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
-            self.parent.addstr(
-                line_number,
-                column_2_start + 1,
-                str(self.model.used_label_text),
-                curses.color_pair(7) | curses.A_BOLD
-            )
+            if not column_1_start + 1 <= len(str(self.model.disks_title_text)):
+                self.parent.addstr(
+                    line_number,
+                    x_pos,
+                    str(self.model.disks_title_text),
+                    curses.color_pair(3)
+                )
+            if not column_1_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_1_start + 1,
+                    str(self.model.total_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            if not column_2_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_2_start + 1,
+                    str(self.model.used_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+            if not column_3_start + 1 <= x_pos:
+                self.parent.addstr(
+                    line_number,
+                    column_3_start + 1,
+                    str(self.model.free_label_text),
+                    curses.color_pair(7) | curses.A_BOLD
+                )
+
         # Mount Point
         for mount_point in self.model.disk_partition_list:
             line_number += 1
@@ -414,43 +429,45 @@ class MainPanel(object):
                     curses.color_pair(10),
                     mount_point[5] + " "
                 )
-                self.parent.vline(
-                    line_number,
-                    column_1_start,
-                    curses.ACS_VLINE,
-                    1
-                )
-                self.parent.addstr(
-                    line_number,
-                    column_1_end - len(str(mount_point[1])),
-                    str(mount_point[1]),
-                    curses.color_pair(3)
-                )
-                self.parent.vline(
-                    line_number,
-                    column_1_end,
-                    curses.ACS_VLINE,
-                    1
-                )
-                self.parent.addstr(
-                    line_number,
-                    column_2_end - len(str(mount_point[2])),
-                    str(mount_point[2]),
-                    curses.color_pair(3)
-                )
-                self.parent.vline(
-                    line_number,
-                    column_2_end,
-                    curses.ACS_VLINE,
-                    1
-                )
-                self.parent.addstr(
-                    line_number,
-                    column_3_end - len(str(mount_point[3])),
-                    str(mount_point[3]),
-                    curses.color_pair(3)
-                )
-
+                if not column_1_start + 1 <= x_pos:
+                    self.parent.vline(
+                        line_number,
+                        column_1_start,
+                        curses.ACS_VLINE,
+                        1
+                    )
+                    self.parent.addstr(
+                        line_number,
+                        column_1_end - len(str(mount_point[1])),
+                        str(mount_point[1]),
+                        curses.color_pair(3)
+                    )
+                if not column_2_start + 1 <= x_pos:
+                    self.parent.vline(
+                        line_number,
+                        column_1_end,
+                        curses.ACS_VLINE,
+                        1
+                    )
+                    self.parent.addstr(
+                        line_number,
+                        column_2_end - len(str(mount_point[2])),
+                        str(mount_point[2]),
+                        curses.color_pair(3)
+                    )
+                if not column_3_start + 1 <= x_pos:
+                    self.parent.vline(
+                        line_number,
+                        column_2_end,
+                        curses.ACS_VLINE,
+                        1
+                    )
+                    self.parent.addstr(
+                        line_number,
+                        column_3_end - len(str(mount_point[3])),
+                        str(mount_point[3]),
+                        curses.color_pair(3)
+                    )
 
         # Task SPoller Summary
         line_number += 2

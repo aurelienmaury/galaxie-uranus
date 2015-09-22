@@ -88,22 +88,29 @@ class ViewerClass(object):
         top_menu_box = self.screen.subwin(0, 0, 0, 0)
         _, top_menu_box_num_cols = top_menu_box.getmaxyx()
         if curses.has_colors():
-            top_menu_box.addstr(0, 0, str(" " * int(top_menu_box_num_cols)), curses.color_pair(1))
-            top_menu_box.bkgdset(ord(' '), curses.color_pair(1))
-        #top_menu_box.addstr(0, 0, "*")
-        #top_menu_box.addstr(0, 0, "  File     Queue     View     Help")
-        top_menu_box.addstr(
-            0,
-            (top_menu_box_num_cols - 1) - len(app_info_label[:-1]),
-            app_info_label[:-1],
-            curses.color_pair(1)
-        )
-        top_menu_box.insstr(
-            0,
-            top_menu_box_num_cols - 1,
-            app_info_label[-1:],
-            curses.color_pair(1)
-        )
+                top_menu_box.addstr(
+                    0,
+                    0,
+                    str(" " * int(top_menu_box_num_cols)),
+                    curses.color_pair(1)
+                )
+                top_menu_box.bkgdset(
+                    ord(' '),
+                    curses.color_pair(1)
+                )
+        if not top_menu_box_num_cols + 1 <= len(app_info_label):
+            top_menu_box.addstr(
+                0,
+                (top_menu_box_num_cols - 1) - len(app_info_label[:-1]),
+                app_info_label[:-1],
+                curses.color_pair(1)
+            )
+            top_menu_box.insstr(
+                0,
+                top_menu_box_num_cols - 1,
+                app_info_label[-1:],
+                curses.color_pair(1)
+            )
 
     def display_message(self, message):
         self.model.last_message = message
