@@ -1,8 +1,8 @@
 #! /bin/bash
 
-# Write by Tuxa <tuxa galaxie.eu.org>
-# It script it publish on GNU GENERAL PUBLIC LICENSE
+# It script it publish under GNU GENERAL PUBLIC LICENSE
 # http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
 
 # This script search in TVHeadend log directory a file it contain a patern
 # With it patterh , the script found the log file and extract the Video path attached

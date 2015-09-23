@@ -1,14 +1,16 @@
-#!/usr/bin/python
-'''
-Created on 4 avr. 2015
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-@author: tuxa
-'''
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
+
 import psutil
 from ..utility import bytes2human
 from ..utility import get_processor_info
 from ..utility import disk_free
-from Drake.plugins.task_spooler_summary import TaskSpoolerSummary
+# from ..plugins.task_spooler_summary import TaskSpoolerSummary
 
 #######################
 ###    THE MODEL    ###
@@ -189,6 +191,7 @@ class model_class():
         # Queue Manager Values and Setting
         self.window_queue_selected_item = 0
         self.window_queue_selected_item_list_value = list()
+        self.window_queue_selected_for_action_value = list()
         self.window_queue_tasks_list = list()
         self.window_queue_item_number = 0
         self.window_queue_item_it_can_be_display = 0

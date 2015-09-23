@@ -1,17 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-'''
-Created on 4 avr. 2015
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
 
-@author: Tuxa - www.rtnp.org
-'''
 import curses
 import os
 import random
 import threading
 import time
 import psutil
-
 
 compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
 from ..transcoder import HandBrake
@@ -20,6 +20,7 @@ from ..taskspooler import TaskSpooler
 from ..utility import display_up_time
 from ..utility import bytes2human
 from ..utility import disk_free
+
 
 class controler_class():
     def __init__(self, screen, viewer, model):
@@ -40,15 +41,15 @@ class controler_class():
         refresh_data_thread.start()
 
         # Enable Hint Splash
-        #timer_thread_splash_hints = threading.Thread(target=self.splash_hints)
-        #timer_thread_splash_hints.daemon = True
-        #timer_thread_splash_hints.start()
+        # timer_thread_splash_hints = threading.Thread(target=self.splash_hints)
+        # timer_thread_splash_hints.daemon = True
+        # timer_thread_splash_hints.start()
 
         self.message_events = {
             ord("\t"): lambda: self.on_message("The User Pressed TAB"),
             ord("q"): lambda: self.on_message("The User Pressed Q"),
             curses.KEY_UP: lambda: self.on_message("The User Pressed UP"),
-            #curses.KEY_DOWN: lambda: self.on_message("The User Pressed DOWN"),
+            # curses.KEY_DOWN: lambda: self.on_message("The User Pressed DOWN"),
             curses.KEY_LEFT: lambda: self.on_message("The User Pressed LEFT"),
             curses.KEY_RIGHT: lambda: self.on_message("The User Pressed RIGHT"),
             curses.KEY_ENTER: lambda: self.on_message("The User Pressed ENTER"),
@@ -110,7 +111,7 @@ class controler_class():
                         if self.model.window_source_item_list_scroll + self.model.window_source_item_it_can_be_display + 1 < self.model.window_source_ls_dir_item_number <= self.model.window_source_ls_dir_item_number:
                             self.model.window_source_item_list_scroll += 1
                 elif input_event == curses.KEY_F3:
-                    #self.model.window_source_selected_item_list_value[0]
+                    # self.model.window_source_selected_item_list_value[0]
                     self.viewer.display_message(
                         "Prepare " +
                         os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
@@ -271,9 +272,21 @@ class controler_class():
             if self.model.active_window == 4:
                 if input_event == 27:
                     self.control_echap(input_event)
+                elif input_event == curses.KEY_F3:
+                    input_event = None
+                    self.viewer.display_message(
+                        str(
+                            self.model.tsp.read_last_output_line(
+                                job_id=self.model.window_queue_selected_for_action_value[0]
+                            )
+                        )
+                    )
+                    self.viewer.refresh_screen(self.model.active_window)
                 elif input_event == curses.KEY_F8:
                     input_event = None
-                    self.model.tsp.remove_task(jobid=self.model.window_queue_selected_item_list_value[0])
+                    self.model.tsp.remove_task(
+                        job_id=self.model.window_queue_selected_for_action_value[0]
+                    )
                     self.viewer.refresh_screen(self.model.active_window)
                 elif input_event == curses.KEY_F10:
                     input_event = None
@@ -285,18 +298,18 @@ class controler_class():
                         if not self.model.window_queue_item_list_scroll == 0:
                             self.model.window_queue_item_list_scroll -= 1
                 elif input_event == curses.KEY_DOWN:
-                    if not self.model.window_queue_item_it_can_be_display == self.model.window_queue_selected_item + 1\
+                    if not self.model.window_queue_item_it_can_be_display == self.model.window_queue_selected_item + 1 \
                             and not self.model.window_queue_selected_item + 1 == len(
                                 self.model.window_queue_tasks_list) \
                             and not len(self.model.window_queue_tasks_list) == 0:
                         self.model.window_queue_selected_item += 1
                     else:
-                        #self.on_message("window_queue_item_it_can_be_display: " + str(self.model.window_queue_item_it_can_be_display))
+                        # self.on_message("window_queue_item_it_can_be_display: " + str(self.model.window_queue_item_it_can_be_display))
                         if self.model.window_queue_item_list_scroll + self.model.window_queue_item_it_can_be_display < self.model.window_queue_item_number:
                             self.model.window_queue_item_list_scroll += 1
 
             # Control of Quit Box
-            action = ""
+            action = ''
             if self.model.active_window == 10:
                 for Button in [self.model.window_quit_YesButton, self.model.window_quit_NoButton]:
                     if Button.key_pressed(input_event):
@@ -311,19 +324,19 @@ class controler_class():
                             self.viewer.display_message(action)
                 elif input_event == curses.KEY_RIGHT or input_event == curses.KEY_LEFT:
                     self.model.window_quit_yesno = not self.model.window_quit_yesno
-                elif input_event == ord("\t"):
+                elif input_event == ord('\t'):
                     self.model.window_quit_yesno = not self.model.window_quit_yesno
-                elif input_event == curses.KEY_ENTER or input_event == ord("\n"):
+                elif input_event == curses.KEY_ENTER or input_event == ord('\n'):
                     if self.model.window_quit_yesno == 1:
-                        action = "Yes"
+                        action = 'Yes'
                     if not self.model.window_quit_yesno == 1:
-                        action = "No"
+                        action = 'No'
                 elif input_event == 27:
                     self.screen.nodelay(1)
                     n = screen.getch()
                     if n == -1:
                         # Escape was pressed
-                        action = "No"
+                        action = 'No'
                     self.screen.nodelay(0)
             if input_event in self.message_events:
                 self.message_events[input_event]()
@@ -333,13 +346,13 @@ class controler_class():
                 if self.model.active_window == 0:
                     self.model.last_window = self.model.active_window
                     self.model.active_window = 10
-            elif action[:1] == "Y":
-                self.on_message("The User selected " + action)
+            elif action[:1] == 'Y':
+                self.on_message('The User selected ' + action)
                 break
-            elif action[:1] == "N":
+            elif action[:1] == 'N':
                 self.model.window_quit_yesno = 1
                 self.model.active_window = self.model.last_window
-                self.on_message("The User selected " + action)
+                self.on_message('The User selected ' + action)
             else:
                 pass
             self.viewer.refresh_screen(self.model.active_window)
@@ -364,10 +377,10 @@ class controler_class():
         self.viewer.display_info(info)
         self.model.last_info = info
 
-    def on_window_change(self, id, message):
+    def on_window_change(self, id_, message):
         self.on_message(message)
         self.model.last_window = self.model.active_window
-        self.model.active_window = id
+        self.model.active_window = id_
 
     def display_a_hint(self):
         self.on_info(self.model.hint_pre_message_text + random.choice(self.model.hint_list))
@@ -389,8 +402,14 @@ class controler_class():
                 # Uptime
                 self.model.up_time = display_up_time()
                 # CPUs
-                self.model.psutil_cpu_percent_list = psutil.cpu_percent(interval=1, percpu=True)
-                self.model.psutil_cpu_times_percent_list = psutil.cpu_times_percent(interval=1, percpu=False)
+                self.model.psutil_cpu_percent_list = psutil.cpu_percent(
+                    interval=1,
+                    percpu=True
+                )
+                self.model.psutil_cpu_times_percent_list = psutil.cpu_times_percent(
+                    interval=1,
+                    percpu=False
+                )
                 # Refresh Memory information
                 self.model.psutil_virtual_memory = psutil.virtual_memory()
                 self.model.memory_used = self.model.psutil_virtual_memory.used
@@ -402,17 +421,20 @@ class controler_class():
                 # Refresh Swap information
                 self.model.psutil_swap_memory = psutil.swap_memory()
                 self.model.swap_used = bytes2human(self.model.psutil_swap_memory.used)
-                self.model.swap_free = bytes2human(self.model.psutil_swap_memory.total - self.model.psutil_swap_memory.used)
+                self.model.swap_free = bytes2human(
+                    self.model.psutil_swap_memory.total - self.model.psutil_swap_memory.used)
                 self.model.swap_total = bytes2human(self.model.psutil_swap_memory.total)
+                # Disk
+                self.model.disk_partition_list = disk_free()
                 # TaskSpooler
                 self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
-                self.viewer.display_method_by_window[self.model.active_window]()
                 # Refresh the parent window
-                self.model.main_panel_sub_win.refresh()
+                if not self.model.active_window == 10:
+                    self.viewer.display_method_by_window[self.model.active_window]()
+                    self.model.main_panel_sub_win.refresh()
             elif self.model.active_window == 4:
                 if not sorted(self.model.tsp.get_list()) == sorted(self.model.window_queue_tasks_list):
                     self.model.window_queue_tasks_list = self.model.tsp.get_list()
                     self.model.taskspooler_summary_list = self.model.tsp.get_summary_info()
                     self.viewer.display_method_by_window[self.model.active_window]()
                     self.model.window_queue_sub_win.refresh()
-

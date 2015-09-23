@@ -1,16 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-'''
-Created on 4 avr. 2015
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
 
-@author: tuxa
-'''
 import curses
 
-from Drake.queue_panel import Queue
-from Drake.main_panel import MainPanel
-from Drake.api.button import CursesButton
-from Drake.api.file_selector import FileSelect
+from ..queue_panel import Queue
+from ..main_panel import MainPanel
+from ..api.button import CursesButton
+from ..api.file_selector import FileSelect
+
 
 class ViewerClass(object):
     def __init__(self, bottom_menu, screen, model):
@@ -30,20 +32,22 @@ class ViewerClass(object):
             3: lambda: self.display_summary_box("Summary"),
             4: lambda: self.display_queue_box("Queue"),
             5: lambda: self.display_full_box("Audio"),
-            #8: lambda: self.display_tags_box("Tags"),
+            # 8: lambda: self.display_tags_box("Tags"),
         }
         self.display_top_menu()
         self.display_method_by_window[self.model.active_window]()
         self.display_bottom_button()
 
-        #screen.refresh()
+        # screen.refresh()
 
-    def init_curses(self):
+    @staticmethod
+    def init_curses():
         curses.curs_set(0)
-        #self.screen.nodelay(1)
+        # self.screen.nodelay(1)
         curses.mousemask(-1)
 
-    def init_colors(self):
+    @staticmethod
+    def init_colors():
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_CYAN)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLUE)
@@ -119,7 +123,12 @@ class ViewerClass(object):
         display_message_subwin = self.screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
         _, display_message_subwin_num_cols = display_message_subwin.getmaxyx()
         if curses.has_colors():
-            display_message_subwin.insstr(0, 0, str(" " * int(display_message_subwin_num_cols)), curses.color_pair(2))
+            display_message_subwin.insstr(
+                0,
+                0,
+                str(" " * int(display_message_subwin_num_cols)),
+                curses.color_pair(2)
+            )
             if len(message) >= display_message_subwin_num_cols - 1:
                 start, end = message[:display_message_subwin_num_cols - 1], message[display_message_subwin_num_cols - 1:]
                 display_message_subwin.addstr(0, 0, str(start))
@@ -177,8 +186,6 @@ class ViewerClass(object):
         if req_button_number > self.max_button_number:
             req_button_number = self.max_button_number
 
-        aviable_per_item = int(bottom_menu_box_num_cols - 1 / req_button_number)
-
         # Size Bug it crash about display size, by reduse the number of button it can be display
         max_can_be_display = 1
         for I in range(1, req_button_number + 1):
@@ -188,10 +195,23 @@ class ViewerClass(object):
             if bottom_menu_box_num_cols - 1 > cumul + int((3 * max_can_be_display) - 0):
                 max_can_be_display += 1
 
-        bottom_menu_box.addstr(0, 0, str(" " * int(bottom_menu_box_num_cols)), curses.color_pair(1))
-        bottom_menu_box.insstr(0, bottom_menu_box_num_cols - 1, " ", curses.color_pair(1))
-        bottom_menu_box.addstr(0, 0, "")
-
+        bottom_menu_box.addstr(
+            0,
+            0,
+            str(" " * int(bottom_menu_box_num_cols)),
+            curses.color_pair(1)
+        )
+        bottom_menu_box.insstr(
+            0,
+            bottom_menu_box_num_cols - 1,
+            " ",
+            curses.color_pair(1)
+        )
+        bottom_menu_box.addstr(
+            0,
+            0,
+            ""
+        )
         count = 0
         for num in range(0, max_can_be_display-1):
             if count == 0:

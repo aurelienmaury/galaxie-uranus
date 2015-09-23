@@ -5,3 +5,8 @@
 # http://www.gnu.org/licenses/gpl-3.0.en.html
 # Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
 __author__ = 'Tuux'
+
+from taskspooler import TaskSpooler
+
+tsp = TaskSpooler()
+print tsp.read_task_output()

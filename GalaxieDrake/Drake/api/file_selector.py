@@ -1,21 +1,21 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-'''
-Created on 4 avr. 2015
-
-@author: tuxa
-'''
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
 
 import curses
 import os
 from os.path import expanduser
 from operator import itemgetter
 
-from Drake.api.clickable_text import clickable_sort_by_text
-from Drake.history import creat_history_box
-from Drake.utility import disk_usage
-from Drake.utility import get_file_info_list
-from Drake.utility import resize_text
+from .clickable_text import clickable_sort_by_text
+from ..history import creat_history_box
+from ..utility import disk_usage
+from ..utility import get_file_info_list
+from ..utility import resize_text
 
 
 class FileSelect(object):

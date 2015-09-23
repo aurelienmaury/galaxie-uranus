@@ -1,9 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # It script it publish under GNU GENERAL PUBLIC LICENSE
 # http://www.gnu.org/licenses/gpl-3.0.en.html
-# Author: Jerome ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserverd
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
 
 import os
 import sys
@@ -20,6 +21,7 @@ class TaskSpooler(object):
         self.info_args = '-i'
         self.output_args = '-o'
         self.version_args = '-V'
+        self.get_output_args = '-c'
         locale.setlocale(locale.LC_ALL, '')
         self.code = locale.getpreferredencoding()
         self.decode = lambda b: b.decode(self.code)
@@ -50,11 +52,21 @@ class TaskSpooler(object):
                     return exe_file
         return None
 
-    def remove_task(self, jobid=None):
+    def remove_task(self, job_id=None):
         command = [self.command, self.remove_args]
-        if jobid is not None:
-            command.append(jobid)
+        if job_id is not None:
+            command.append(job_id)
         subprocess.call(command)
+
+    def read_last_output_line(self, job_id=None):
+        if job_id is not None:
+            output_file = self.get_output(job_id)
+        else:
+            output_file = self.get_output()
+        for line in open(output_file):
+            last = line
+        return str(last.rstrip(os.linesep))
+
 
     def read_task_list(self):
         cmd = self.get_command([self.command])

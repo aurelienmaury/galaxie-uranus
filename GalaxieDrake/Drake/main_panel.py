@@ -1,10 +1,16 @@
-__author__ = 'tuxa'
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
 
 import curses
 import platform
 
-from Drake.api.progress_bar import ProgressBar
-from Drake.plugins.task_spooler_summary import TaskSpoolerSummary
+from .api.progress_bar import ProgressBar
+from .plugins.task_spooler_summary import TaskSpoolerSummary
 
 
 class MainPanel(object):

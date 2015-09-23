@@ -1,16 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Write by Tuxa <tuxa galaxie.eu.org>
-# It script it publish on GNU GENERAL PUBLIC LICENSE
-# http://www.gnu.org/licenses/gpl-3.0.en.html
 
-__author__ = 'tuxa www.rtnp.org'
+# It script it publish under GNU GENERAL PUBLIC LICENSE
+# http://www.gnu.org/licenses/gpl-3.0.en.html
+# Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+__author__ = 'Tuux'
+
 import curses
 
-from Drake.api.clickable_text import clickable_sort_by_text
+from .api.clickable_text import clickable_sort_by_text
 from .utility import resize_text
 from .utility import secs_to_human_read
-from Drake.plugins.task_spooler_summary import TaskSpoolerSummary
+from .plugins.task_spooler_summary import TaskSpoolerSummary
 
 
 class Queue(object):
@@ -234,6 +235,14 @@ class Queue(object):
 
                 # Draw the selected Line
                 if self.model.window_queue_selected_item == I:
+                    self.model.window_queue_selected_for_action_value = [
+                        job_id_text,
+                        state_text,
+                        output_text,
+                        e_level_text,
+                        times_text,
+                        command_text
+                    ]
                     self.model.window_queue_selected_item_list_value
                     # Magic line it put with a color the entire line before write something
                     self.parent.addstr(
