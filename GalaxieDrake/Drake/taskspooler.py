@@ -247,7 +247,6 @@ class Prepare(object):
         elif not os.access(self.transcoder_path, os.R_OK):
             print "Error: " + self.transcoder_path + " can't be read"
             print "Error: \"transcoder.py is require \""
-            print "Error: " + scriptname.title() + " will abort ..."
             sys.exit(1)
         elif not os.access(self.transcoder_path, os.X_OK):
             print "Error: " + self.transcoder_path + " haven't executable permission"

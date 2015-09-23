@@ -118,7 +118,7 @@ class ViewerClass(object):
 
     def display_message(self, message):
         self.model.last_message = message
-        message = " " + message
+        # message = " " + message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
         display_message_subwin = self.screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
         _, display_message_subwin_num_cols = display_message_subwin.getmaxyx()

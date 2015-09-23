@@ -4,6 +4,14 @@
 # It script it publish under GNU GENERAL PUBLIC LICENSE
 # http://www.gnu.org/licenses/gpl-3.0.en.html
 # Author: Jérôme ORNECH alias "Tuux" <tuxa@rtnp.org> all rights reserved
+
+# Bytes-to-human / human-to-bytes converter.
+# Based on: http://goo.gl/kTQMs
+# Working with Python 2.x and 3.x.
+#
+# Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
+# License: MIT
+
 __author__ = 'Tuux'
 
 import os
@@ -69,6 +77,7 @@ SYMBOLS = {
                        'zebi', 'yobi'),
 }
 
+
 def bytes2human(n, format='%(value).1f%(symbol)s', symbols='customary'):
     """
     Convert n bytes into a human readable string based on format.
@@ -118,6 +127,7 @@ def bytes2human(n, format='%(value).1f%(symbol)s', symbols='customary'):
             value = float(n) / prefix[symbol]
             return format % locals()
     return format % dict(symbol=symbols[0], value=n)
+
 
 def human2bytes(s):
     """

@@ -12,15 +12,15 @@ import random
 import threading
 import time
 import psutil
-
-compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
 from ..transcoder import HandBrake
 from ..events import *
 from ..taskspooler import TaskSpooler
 from ..utility import display_up_time
 from ..utility import bytes2human
 from ..utility import disk_free
+from .controler_actions import ScanDir
 
+# compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
 
 class controler_class():
     def __init__(self, screen, viewer, model):
@@ -112,10 +112,15 @@ class controler_class():
                             self.model.window_source_item_list_scroll += 1
                 elif input_event == curses.KEY_F3:
                     # self.model.window_source_selected_item_list_value[0]
-                    self.viewer.display_message(
-                        "Prepare " +
-                        os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
+                    ScanDir(
+                        os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0]),
+                        self.model,
+                        self.viewer
                     )
+                    # self.viewer.display_message(
+                    #     "Prepare " +
+                    #     os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
+                    # )
                 elif input_event == curses.KEY_ENTER or input_event == ord("\n"):
 
                     if os.path.isdir(self.model.window_source_selected_item_list_value[0]):

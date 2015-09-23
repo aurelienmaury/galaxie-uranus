@@ -8,6 +8,7 @@ __author__ = 'Tuux'
 
 import curses
 
+
 class creat_history_box():
 
     def __init__(self, model, parent, y, x, label, color):
