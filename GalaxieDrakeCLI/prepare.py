@@ -97,13 +97,13 @@ class prepare(object):
             # Everything is test we can start to scan directory
             files_list_to_transcode = list()
             print " Transcoder Path: " + self.transcoder_path
-            print " Source Direcory: " + self.workingdir + "/"
+            print " Source Directory: " + self.workingdir + "/"
             print ""
             print "Searching for: "
             for file_pattern in extension_list:
                 print " " + file_pattern.upper()[2:],
             print ""
-            print " Exeption Pattern: \"" + file_pattern_exception + "\""
+            print " Exception Pattern: \"" + file_pattern_exception + "\""
 
             # Counter for the Text Progress Bar
             count = 1

@@ -61,7 +61,7 @@ class ViewerClass(object):
     def display_full_box(self, title):
         num_lines, _ = self.screen.getmaxyx()
         # Creat a sub window
-        full_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
+        full_box = self.screen
         self_num_lines, selft_num_cols = full_box.getmaxyx()
         # Put the Background color
         if curses.has_colors():
@@ -110,7 +110,7 @@ class ViewerClass(object):
         self.model.last_message = message
         message = " " + message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
-        display_message_subwin = self.screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
+        display_message_subwin = self.screen
         _, display_message_subwin_num_cols = display_message_subwin.getmaxyx()
         if curses.has_colors():
             display_message_subwin.insstr(0, 0, str(" " * int(display_message_subwin_num_cols)), curses.color_pair(2))
@@ -125,7 +125,7 @@ class ViewerClass(object):
     def display_info(self, message):
         self.model.last_info = message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
-        display_info_sub_win = self.screen.subwin(1, screen_num_cols, screen_num_lines - 3, 0)
+        display_info_sub_win = self.screen
         _, display_info_sub_win_num_cols = display_info_sub_win.getmaxyx()
         if curses.has_colors():
             display_info_sub_win.insstr(0, 0, str(" " * int(display_info_sub_win_num_cols)), curses.color_pair(2))

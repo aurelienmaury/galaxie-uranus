@@ -29,7 +29,7 @@ class controler_class():
         self.screen = screen
 
         # Creat a TaskSpooler objec tfor dialog with "tsp"
-        self.model.tsp = TaskSpooler()
+        self.model.tsp = TaskSpooler(self.model)
         # Init the list queue for the frist time
         self.model.window_queue_tasks_list = self.model.tsp.get_list()
 
@@ -91,7 +91,9 @@ class controler_class():
                     self.model.active_window = self.model.last_window
 
             # Control of File Selector - Source Box
-            if self.model.active_window == 2 and not self.model.display_history_menu == 1:
+            if self.model.active_window == 2 \
+                    and not self.model.display_history_menu == 1 \
+                    and not self.model.display_scan_dialog == 1:
                 if input_event == 27:
                     self.control_echap(input_event)
                 elif input_event == curses.KEY_F10:
@@ -111,17 +113,16 @@ class controler_class():
                         if self.model.window_source_item_list_scroll + self.model.window_source_item_it_can_be_display + 1 < self.model.window_source_ls_dir_item_number <= self.model.window_source_ls_dir_item_number:
                             self.model.window_source_item_list_scroll += 1
                 elif input_event == curses.KEY_F3:
-                    # self.model.window_source_selected_item_list_value[0]
+                    self.model.scanning_directory = os.path.join(
+                        os.getcwd(),
+                        self.model.window_source_selected_item_list_value[0]
+                    )
                     ScanDir(
-                        os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0]),
                         self.model,
                         self.viewer
                     )
-                    # self.viewer.display_message(
-                    #     "Prepare " +
-                    #     os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
-                    # )
-                elif input_event == curses.KEY_ENTER or input_event == ord("\n"):
+                    self.model.display_scan_dialog = not self.model.display_scan_dialog
+                elif input_event == curses.KEY_ENTER or input_event == ord('\n'):
 
                     if os.path.isdir(self.model.window_source_selected_item_list_value[0]):
                         os.chdir(self.model.window_source_selected_item_list_value[0])
@@ -139,7 +140,7 @@ class controler_class():
                     else:
                         filename = os.path.join(os.getcwd(), self.model.window_source_selected_item_list_value[0])
                         if filename.endswith(self.model.video_file_extensions):
-                            self.viewer.display_message("Scaning ... ")
+                            self.viewer.display_message('Scanning ... ')
                             self.model.transcoder = HandBrake(
                                 filename,
                                 max_height=720,
@@ -227,6 +228,15 @@ class controler_class():
                         else:
                             if self.model.window_source_item_list_scroll + self.model.window_source_item_it_can_be_display + 1 < self.model.window_source_ls_dir_item_number <= self.model.window_source_ls_dir_item_number:
                                 self.model.window_source_item_list_scroll += 1
+            # When Scanning Dialog is display enable special shortcut
+            elif self.model.display_scan_dialog == 1:
+                    if input_event == 27:
+                        self.screen.nodelay(1)
+                        n = screen.getch()
+                        if n == -1:
+                            # Escape was pressed
+                            self.model.display_scan_dialog = not self.model.display_scan_dialog
+                        self.screen.nodelay(0)
             # When history i display enable special shortcut
             elif self.model.display_history_menu == 1:
                 if input_event == 27:

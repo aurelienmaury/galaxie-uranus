@@ -11,43 +11,58 @@ import sys
 import glob
 import subprocess
 import re
+import fnmatch
 
 
 class ScanDir(object):
-    def __init__(self, directory, model, viewer):
+    def __init__(self, model, viewer):
         self.viewer = viewer
         self.model = model
 
-        self.taskspooler_path = self.check_taskspooler
-        self.nice_path = self.check_nice
-        self.working_dir = os.path.realpath(directory)
-        self.transcoder_path = self.check_transcoder
-        self.nice_priority = '15'
-
         # Test if the script can run without common errors
-        if self.working_dir is not None and self.transcoder_path is not None:
-            if not os.access(self.working_dir, os.F_OK):
-                self.viewer.display_info("Error: " + self.working_dir + " don't exist")
-            elif not os.access(self.working_dir, os.R_OK):
-                self.viewer.display_info("Error: " + self.working_dir + " can't be read")
-            elif not os.access(self.transcoder_path, os.R_OK):
-                self.viewer.display_info("Error: " + self.transcoder_path + " can't be read")
-                self.viewer.display_message("Error: 'transcoder.py' is require")
-            elif not os.access(self.transcoder_path, os.X_OK):
-                self.viewer.display_info("Error: " + self.transcoder_path + " haven't executable permission")
-            else:
-                # Everything is test we can start to scan directory
-                files_list_to_transcode = list()
+        if not os.access(self.model.scanning_directory, os.F_OK):
+            self.viewer.display_info("Error: " + self.model.scanning_directory + " don't exist")
+        elif not os.access(self.model.scanning_directory, os.R_OK):
+            self.viewer.display_info("Error: " + self.model.scanning_directory + " can't be read")
+        else:
+            # Everything is test we can start to scan directory
+            files_list_to_transcode = list()
+            # Counter for the Text Progress Bar
+            count = 1
+            # For each file patterns extension
+            for self.model.scanning_file_pattern in self.model.searching_extension_list:
+                # Call Text Progress Bar
+                self.model.scanning_percent = int(round(100 * count / len(self.model.searching_extension_list)))
+                # Scan directory recursivlly for Lower and Upper case file extension
+                files_lower = self.rglob(self.model.scanning_directory, self.model.scanning_file_pattern.lower())
+                files_upper = self.rglob(self.model.scanning_directory, self.model.scanning_file_pattern.upper())
+
+                # Add Lower case file extension to the final file list to encode
+                if len(files_lower):
+                    for file_lower in files_lower:
+                        if not fnmatch.fnmatch(file_lower, self.model.scanning_file_pattern):
+                            self.model.files_list_to_transcode.append(file_lower)
+                # Add Upper case file extension to the final file list to encode
+                if len(files_upper):
+                    for file_upper in files_upper:
+                        if not fnmatch.fnmatch(file_upper, self.model.scanning_file_pattern):
+                            self.model.files_list_to_transcode.append(file_upper)
+
+                # Counter for the Text Progress Bar
+                count += 1
+                # Set progress bar value
+                #screen.refresh()
+
 
     def add_transcode_task(self, file_path):
         cmd = list()
-        cmd.append(unicode(self.taskspooler_path, 'utf-8'))
-        if self.nice_path:
-            cmd.append(unicode(self.nice_path, 'utf-8'))
+        cmd.append(unicode(self.model.taskspooler_path, 'utf-8'))
+        if self.model.nice_path:
+            cmd.append(unicode(self.model.nice_path, 'utf-8'))
             cmd.append(unicode("-n", 'utf-8'))
-            cmd.append(unicode(self.nice_priority, 'utf-8'))
+            cmd.append(unicode(self.model.nice_priority, 'utf-8'))
 
-        cmd.append(unicode(self.transcoder_path, 'utf-8'))
+        cmd.append(unicode(self.model.transcoder_path, 'utf-8'))
         cmd.append(unicode(file_path, 'utf-8'))
         # output = None
         output = subprocess.check_output(cmd)
@@ -59,14 +74,14 @@ class ScanDir(object):
     def tsp_check_if_job_exist(self, file_to_transcode):
         # Constitute Searching Pattern inside the TaskSpooler
         searching_command_txt = ""
-        if self.nice_path:
-            searching_command_txt += str(self.nice_path)
+        if self.model.nice_path:
+            searching_command_txt += str(self.model.nice_path)
             searching_command_txt += " "
             searching_command_txt += str("-n")
             searching_command_txt += " "
-            searching_command_txt += str(self.nice_priority)
+            searching_command_txt += str(self.model.nice_priority)
             searching_command_txt += " "
-        searching_command_txt += str(self.transcoder_path)
+        searching_command_txt += str(self.model.transcoder_path)
         searching_command_txt += " "
         searching_command_txt += str(file_to_transcode)
 
@@ -82,7 +97,7 @@ class ScanDir(object):
 
     def tsp_job_status(self, jobid):
         cmd = list()
-        cmd.append(unicode(self.taskspooler_path, 'utf-8'))
+        cmd.append(unicode(self.model.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-s", 'utf-8'))
         cmd.append(unicode(jobid, 'utf-8'))
         output = subprocess.check_output(cmd)
@@ -90,12 +105,12 @@ class ScanDir(object):
             output = output.rstrip(os.linesep)
             return output
         else:
-            return "unknow"
+            return "unknown"
 
     def tsp_job_information(self, jobid):
         cmd = list()
         output = list()
-        cmd.append(unicode(self.taskspooler_path, 'utf-8'))
+        cmd.append(unicode(self.model.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-i", 'utf-8'))
         cmd.append(unicode(jobid, 'utf-8'))
         output.append(subprocess.check_output(cmd))
@@ -111,7 +126,7 @@ class ScanDir(object):
         output = list()
         tmp_job_list = list()
         clear_list = list()
-        cmd.append(unicode(self.taskspooler_path, 'utf-8'))
+        cmd.append(unicode(self.model.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-l", 'utf-8'))
         output.append(subprocess.check_output(cmd))
         if output:
@@ -132,7 +147,7 @@ class ScanDir(object):
     def tsp_get_version(self):
         cmd = list()
         output = list()
-        cmd.append(unicode(self.taskspooler_path, 'utf-8'))
+        cmd.append(unicode(self.model.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-V", 'utf-8'))
         output.append(subprocess.check_output(cmd))
         if output:
@@ -144,7 +159,7 @@ class ScanDir(object):
     def nice_get_version(self):
         cmd = list()
         output = list()
-        cmd.append(unicode(self.nice_path, 'utf-8'))
+        cmd.append(unicode(self.model.nice_path, 'utf-8'))
         cmd.append(unicode("--version", 'utf-8'))
         output.append(subprocess.check_output(cmd))
         if output:
@@ -164,52 +179,3 @@ class ScanDir(object):
             for d in dirs:
                 tmp_list.extend(self.rglob(os.path.join(base, d), pattern))
         return tmp_list
-
-    @staticmethod
-    def which(program):
-        # It's execute from core/controller
-        os.environ["PATH"] += os.pathsep + os.path.join(os.path.dirname(os.path.realpath(__file__)), './..')
-
-        def is_exe(f_path):
-            return os.path.isfile(f_path) and os.access(f_path, os.X_OK)
-
-        fpath, fname = os.path.split(program)
-        if fpath:
-            if is_exe(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if is_exe(exe_file):
-                    return exe_file
-        return None
-
-    @property
-    def check_transcoder(self):
-        if not self.which("transcoder.py"):
-            self.viewer.display_info(
-                "Error: Please install 'transcoder.py' or verify it is aviable on your $PATH env var"
-            )
-            self.viewer.display_message("Error: Scan will abort ...")
-            return None
-        else:
-            return self.which("transcoder.py")
-
-    @property
-    def check_taskspooler(self):
-        if not self.which("tsp"):
-            self.viewer.display_info("Error: Please install 'task-spooler' or verify it is aviable on your $PATH env var")
-            self.viewer.display_message("Error: Scan will abort ...")
-            return None
-        else:
-            return self.which("tsp")
-
-    @property
-    def check_nice(self):
-        if not self.which("nice"):
-            self.viewer.display_info("Warning: Nice is require, for fixe low process priority")
-            self.viewer.display_message("Warning: Scan will continue without ...")
-            return None
-        else:
-            return self.which("nice")

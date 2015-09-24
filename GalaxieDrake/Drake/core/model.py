@@ -100,25 +100,7 @@ class model_class():
             '.wmv'
         )
 
-        self.searching_extension_list = [
-            '*.ts',
-            '*.mkv',
-            '*.3g2',
-            '*.3gp',
-            '*.asf',
-            '*.asx',
-            '*.avi',
-            '*.flv',
-            '*.m4v',
-            '*.mov',
-            '*.mp4',
-            '*.mpg',
-            '*.rm',
-            '*.srt',
-            '*.swf',
-            '*.vob',
-            '*.wmv'
-        ]
+
 
         self.windows_button_underline = 2
         self.window_quit_yesno = 1
@@ -149,6 +131,9 @@ class model_class():
 
         self.window_source_rep_sup_text = "UP--DIR"
 
+        self.display_scan_dialog = 0
+
+
         self.display_history_menu = 0
         self.window_source_history_dir_list = list()
         self.history_menu_selected_item = 0
@@ -156,7 +141,7 @@ class model_class():
         self.history_menu_item_list_scroll = 0
         self.history_menu_can_be_display = 0
         self.history_menu_item_number = 0
-
+        self.history_dialog_box = 0
         self.window_source_history_dir_list_object = ""
         self.window_source_history_dir_list_prev_object = ""
         self.window_source_history_dir_list_next_object = ""
@@ -248,7 +233,7 @@ class model_class():
         self.swap_free = bytes2human(self.psutil_swap_memory.total - self.psutil_swap_memory.used)
         self.swap_total = bytes2human(self.psutil_swap_memory.total)
 
-        self.disk_partition_list = disk_free()
+
 
         self.taskspooler_summary = ''
         self.taskspooler_summary_list = list()
@@ -260,10 +245,54 @@ class model_class():
         self.taskspooler_finished_with_error_text = "Error"
 
 
-        # Vrac
+        # General
         self.transcoder = -1
+        self.transcoder_path = None
+        self.taskspooler_path = None
+        self.nice_path = None
+        self.nice_priority = '15'
+        self.df_path = None
+        self.disk_partition_list = disk_free()
 
-        self.window_summary_input_file_text = ""
+        self.dialog_box = 0
+        #Scanning Dialoog Box
+        self.scanning_dialog_box = ''
+        self.scanning_dialog_sub_box = ''
+        self.display_scanning_text = "Scanning"
+        self.scanning_directory = None
+        self.scanning_source_directory_label_text = 'Source Directory:'
+        self.scanning_searching_for_label_text = 'Searching for:'
+        self.scanning_exception_pattern_label_text = 'Exception Pattern:'
+        self.scanning_scanning_for_label_text = "Scanning for:"
+        self.scanning_percent = 0
+        self.scanning_file_pattern = ''
+        self.searching_extension_list = [
+            '*.ts',
+            '*.mkv',
+            '*.3g2',
+            '*.3gp',
+            '*.asf',
+            '*.asx',
+            '*.avi',
+            '*.flv',
+            '*.m4v',
+            '*.mov',
+            '*.mp4',
+            '*.mpg',
+            '*.rm',
+            '*.srt',
+            '*.swf',
+            '*.vob',
+            '*.wmv'
+        ]
+        self.searching_file_pattern_exception = '* - *p.mkv'
+        self.searching_extension_list_label_text = ''
+        for file_pattern in self.searching_extension_list:
+            self.searching_extension_list_label_text += file_pattern.upper()[2:]
+            self.searching_extension_list_label_text += ' '
+        self.files_list_to_transcode = list()
+        self.window_summary_input_file_text = ''
+
 
         #A Hint list where it will be randomaly display
         self.hint_pre_message_text = 'Hint: '

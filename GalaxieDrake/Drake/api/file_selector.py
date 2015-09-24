@@ -13,24 +13,26 @@ from operator import itemgetter
 
 from .clickable_text import clickable_sort_by_text
 from ..history import creat_history_box
+from dialog import DialogBox
 from ..utility import disk_usage
 from ..utility import get_file_info_list
 from ..utility import resize_text
 
 
 class FileSelect(object):
-    def __init__(self, window, y, x, model):
+    def __init__(self, window, y, x, model, viewer):
         self.model = model
+        self.viewer = viewer
         self.name_text = self.model.window_source_name_text
         self.size_text = self.model.window_source_size_text
         self.mtime_text = self.model.window_source_mtime_text
 
-        self.Parent = window
+        self.parent = window
         self.YParent, self.XParent = window.getbegyx()
-        self.YParentMax, self.XParentMax = window.getmaxyx()
+        self.YParentMax, self.xparentmax = window.getmaxyx()
         self.Y = y
         self.X = x
-        self.Width = self.XParentMax
+        self.Width = self.xparentmax
 
         # Creat a Tuple with Upper Lower and Title extension
         # Exemple: .mkv -> ('.mkv','.Mkv','MKV')
@@ -110,14 +112,14 @@ class FileSelect(object):
         self.model.window_source_ls_dir_item_number = len(self.file_list)
 
         #Put the Background color Blue
-        self.Parent.bkgd(ord(' '), curses.color_pair(3))
+        self.parent.bkgd(ord(' '), curses.color_pair(3))
 
         # Path Management
         label_dir = " " + os.getcwd() + " "
         label_dir = label_dir.replace(expanduser("~"), "~")
-        if not self.XParentMax - 10 >= len(label_dir):
-            label_dir = str(" ..." + label_dir[-int(self.XParentMax - 14):])
-        self.Parent.addstr(
+        if not self.xparentmax - 10 >= len(label_dir):
+            label_dir = str(" ..." + label_dir[-int(self.xparentmax - 14):])
+        self.parent.addstr(
             0,
             self.X + 3,
             str(label_dir),
@@ -129,28 +131,28 @@ class FileSelect(object):
         y_pos_titles = self.Y + 1
         size_collumn_width = 8
         mtime_collumn_width = 19
-        name_collumn_width = self.XParentMax - (size_collumn_width + mtime_collumn_width + 2)
+        name_collumn_width = self.xparentmax - (size_collumn_width + mtime_collumn_width + 2)
 
         if self.YParentMax > 2:
             #History arrow for navigate inside historty directory list
             self.model.window_source_history_dir_list_prev_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 0,
                 x_pos_line_start,
                 "<",
                 curses.color_pair(3)
             )
             self.model.window_source_history_dir_list_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 0,
-                self.XParentMax - 6,
+                self.xparentmax - 6,
                 ".[^]",
                 curses.color_pair(3)
             )
             self.model.window_source_history_dir_list_next_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 0,
-                self.XParentMax - 2,
+                self.xparentmax - 2,
                ">",
                curses.color_pair(3)
             )
@@ -159,20 +161,20 @@ class FileSelect(object):
             #Check if it have to display ('n) (,n)
             if self.model.window_source_sort_by_name == 1:
                 if self.model.window_source_sort_name_order == 1:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         "'",
                         curses.color_pair(7) | curses.A_BOLD
                     )
                 else:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         ",",
                         curses.color_pair(7) | curses.A_BOLD
                     )
-                self.Parent.addstr(
+                self.parent.addstr(
                     y_pos_titles,
                     self.X + 2,
                     str(self.model.window_source_sort_name_letter),
@@ -181,20 +183,20 @@ class FileSelect(object):
             #Check if it have to display ('s) (,s)
             elif self.model.window_source_sort_by_size == 1:
                 if self.model.window_source_sort_size_order == 1:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         "'",
                         curses.color_pair(7) | curses.A_BOLD
                     )
                 else:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         ",",
                         curses.color_pair(7) | curses.A_BOLD
                     )
-                self.Parent.addstr(
+                self.parent.addstr(
                     y_pos_titles,
                     self.X + 2,
                     str(self.model.window_source_sort_size_letter),
@@ -203,20 +205,20 @@ class FileSelect(object):
             #Check if it have to display ('m) (,m)
             elif self.model.window_source_sort_by_mtime == 1:
                 if self.model.window_source_sort_mtime_order == 0:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         "'",
                         curses.color_pair(7) | curses.A_BOLD
                     )
                 else:
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         y_pos_titles,
                         x_pos_line_start,
                         ",",
                         curses.color_pair(7) | curses.A_BOLD
                     )
-                self.Parent.addstr(
+                self.parent.addstr(
                     y_pos_titles,
                     self.X + 2,
                     str(self.model.window_source_sort_mtime_letter),
@@ -225,37 +227,37 @@ class FileSelect(object):
 
             #Creat 3 clickable elements for "Name", "Size", "Modify Time"
             self.model.window_source_name_text_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 y_pos_titles,
-                ((self.XParentMax - mtime_collumn_width - size_collumn_width) / 2) - (len(self.name_text) / 2),
+                ((self.xparentmax - mtime_collumn_width - size_collumn_width) / 2) - (len(self.name_text) / 2),
                 self.name_text,
                 curses.color_pair(7) | curses.A_BOLD
             )
             self.model.window_source_size_text_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 y_pos_titles,
-                ((self.XParentMax - mtime_collumn_width - size_collumn_width) + 1) + ((len(self.size_text) - 1) / 2),
+                ((self.xparentmax - mtime_collumn_width - size_collumn_width) + 1) + ((len(self.size_text) - 1) / 2),
                 self.size_text,
                 curses.color_pair(7) | curses.A_BOLD
             )
             self.model.window_source_mtime_text_object = clickable_sort_by_text(
-                self.Parent,
+                self.parent,
                 y_pos_titles,
-                (self.XParentMax - mtime_collumn_width + 1) + ((len(str(self.mtime_text)) - 1) / 2) - 4,
+                (self.xparentmax - mtime_collumn_width + 1) + ((len(str(self.mtime_text)) - 1) / 2) - 4,
                 self.mtime_text,
                 curses.color_pair(7) | curses.A_BOLD
                 )
             #Creat 2 Vertical Lines for creat collumns for Name, Size and Modify Time
 
-            self.Parent.vline(
+            self.parent.vline(
                 y_pos_titles,
-                self.XParentMax - mtime_collumn_width,
+                self.xparentmax - mtime_collumn_width,
                 curses.ACS_VLINE,
                 self.YParentMax - 3
             )
-            self.Parent.vline(
+            self.parent.vline(
                 y_pos_titles,
-                self.XParentMax - mtime_collumn_width - size_collumn_width,
+                self.xparentmax - mtime_collumn_width - size_collumn_width,
                 curses.ACS_VLINE,
                 self.YParentMax - 3
             )
@@ -294,16 +296,16 @@ class FileSelect(object):
                 # Draw the selected Line
                 if self.model.window_source_selected_item == count:
                     # Paint the entire line with a hight light color
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         I,
                         x_pos_line_start,
-                        str(" " * int(self.XParentMax - 2)),
+                        str(" " * int(self.xparentmax - 2)),
                         curses.color_pair(1)
                     )
                     # If that a file add a space character
                     self.model.window_source_selected_item_list_value = file_info_list
                     if os.path.isfile(item_path_sys):
-                        self.Parent.addstr(
+                        self.parent.addstr(
                             I,
                             x_pos_line_start,
                             str(" " + item_name_text),
@@ -311,37 +313,37 @@ class FileSelect(object):
                         )
                     # If that a directory add a / character
                     else:
-                        self.Parent.addstr(
+                        self.parent.addstr(
                             I,
                             x_pos_line_start,
                             str("/" + item_name_text),
                             curses.color_pair(1)
                         )
                     # Draw the Size
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         I,
-                        (self.XParentMax - mtime_collumn_width - len(item_size_text)),
+                        (self.xparentmax - mtime_collumn_width - len(item_size_text)),
                         item_size_text,
                         curses.color_pair(1)
                     )
                     # Draw the Date
-                    self.Parent.addstr(
+                    self.parent.addstr(
                         I,
-                        self.XParentMax - mtime_collumn_width + 1,
+                        self.xparentmax - mtime_collumn_width + 1,
                         item_time_text,
                         curses.color_pair(1)
                     )
                     # Draw the 2 vertical lines with high light color
-                    self.Parent.vline(
+                    self.parent.vline(
                         I,
-                        self.XParentMax - mtime_collumn_width,
+                        self.xparentmax - mtime_collumn_width,
                         curses.ACS_VLINE,
                         1,
                         curses.color_pair(1)
                     )
-                    self.Parent.vline(
+                    self.parent.vline(
                         I,
-                        self.XParentMax - mtime_collumn_width - size_collumn_width,
+                        self.xparentmax - mtime_collumn_width - size_collumn_width,
                         curses.ACS_VLINE,
                         1,
                         curses.color_pair(1)
@@ -351,103 +353,112 @@ class FileSelect(object):
                     if os.path.isfile(item_path_sys):
                         # Give color to video file type
                         if item_path_sys.endswith(video_file_extensions):
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
                                 x_pos_line_start,
                                 str(" " + item_name_text),
                                 curses.color_pair(8)
                             )
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
-                                (self.XParentMax - mtime_collumn_width - len(item_size_text)),
+                                (self.xparentmax - mtime_collumn_width - len(item_size_text)),
                                 item_size_text,
                                 curses.color_pair(8)
                             )
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
-                                self.XParentMax - mtime_collumn_width + 1,
+                                self.xparentmax - mtime_collumn_width + 1,
                                 item_time_text,
                                 curses.color_pair(8)
                             )
                         # Else Give normal color
                         else:
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
                                 x_pos_line_start,
                                 str(" " + item_name_text),
                                 curses.color_pair(3)
                             )
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
-                                (self.XParentMax - mtime_collumn_width - len(item_size_text)),
+                                (self.xparentmax - mtime_collumn_width - len(item_size_text)),
                                 item_size_text,
                                 curses.color_pair(3)
                             )
-                            self.Parent.addstr(
+                            self.parent.addstr(
                                 I,
-                                self.XParentMax - mtime_collumn_width+ 1,
+                                self.xparentmax - mtime_collumn_width+ 1,
                                 item_time_text,
                                 curses.color_pair(3)
                             )
                     # It's a Directory, give BOLD attribute
                     else:
-                        self.Parent.addstr(
+                        self.parent.addstr(
                             I,
                             x_pos_line_start,
                             str("/" + item_name_text),
                             curses.color_pair(3) | curses.A_BOLD
                         )
-                        self.Parent.addstr(
+                        self.parent.addstr(
                             I,
-                            (self.XParentMax - mtime_collumn_width - len(item_size_text)),
+                            (self.xparentmax - mtime_collumn_width - len(item_size_text)),
                             item_size_text,
                             curses.color_pair(3) | curses.A_BOLD
                         )
-                        self.Parent.addstr(
+                        self.parent.addstr(
                             I,
-                            self.XParentMax - mtime_collumn_width + 1,
+                            self.xparentmax - mtime_collumn_width + 1,
                             item_time_text,
                             curses.color_pair(3) | curses.A_BOLD
                             )
             count += 1
         if self.YParentMax > 3:
-            self.Parent.hline(
+            self.parent.hline(
                 self.YParentMax - 3,
                 x_pos_line_start,
                 curses.ACS_HLINE,
-                self.XParentMax - 2
+                self.xparentmax - 2
             )
         if self.YParentMax > 2:
             # If the item value is '..' it use Directory setting
             if self.model.window_source_selected_item_list_value[0] == "..":
-                self.Parent.addstr(
+                self.parent.addstr(
                     self.YParentMax - 2,
                     x_pos_line_start,
                     self.model.window_source_rep_sup_text,
                     curses.color_pair(3)
                 )
             else:
-                self.Parent.addstr(
+                self.parent.addstr(
                     self.YParentMax - 2,
                     x_pos_line_start,
-                    resize_text(self.model.window_source_selected_item_list_value[0], self.XParentMax-2),
+                    resize_text(self.model.window_source_selected_item_list_value[0], self.xparentmax-2),
                     curses.color_pair(3)
                 )
         # Add Disk usage
         disk_space_line = disk_usage(os.getcwd())
-        self.Parent.addstr(
+        self.parent.addstr(
             self.YParentMax - 1,
-            self.XParentMax - 2 - len(disk_space_line),
+            self.xparentmax - 2 - len(disk_space_line),
             disk_space_line,
             curses.color_pair(3)
         )
-        #Test if the history widget should be display
+        # Test if the history widget should be display
         if self.model.display_history_menu:
             self.model.history_dialog_box = creat_history_box(
                 self.model,
-                self.Parent,
+                self.parent,
                 0,
-                self.XParentMax - 6,
+                self.xparentmax - 6,
                 self.model.display_history_text,
                 curses.color_pair(4)
+            )
+        elif self.model.display_scan_dialog:
+            self.model.scanning_dialog_box = DialogBox(
+                self.model,
+                self.viewer,
+                self.parent,
+                self.model.display_scanning_text,
+                curses.color_pair(4),
+                dialog_type='scan'
             )

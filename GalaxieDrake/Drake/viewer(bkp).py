@@ -56,7 +56,7 @@ class viewer_class():
     def display_full_box(self, title):
         num_lines, _ = self.screen.getmaxyx()
         # Creat a sub window
-        full_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
+        full_box = self.screen
         self_num_lines, selft_num_cols = full_box.getmaxyx()
         # Put the Background color
         if curses.has_colors():
@@ -87,7 +87,7 @@ class viewer_class():
     def display_message(self, message):
         self.model.last_message = message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
-        display_message_subwin = self.screen.subwin(1, screen_num_cols - 1, screen_num_lines - 2, 0)
+        display_message_subwin = self.screen
         _, display_message_subwin_num_cols = display_message_subwin.getmaxyx()
         if curses.has_colors():
             display_message_subwin.insstr(0, 0, str(" " * int(display_message_subwin_num_cols)), curses.color_pair(2))
@@ -102,7 +102,7 @@ class viewer_class():
     def display_info(self, message):
         self.model.last_info = message
         screen_num_lines, screen_num_cols = self.screen.getmaxyx()
-        display_info_subwin = self.screen.subwin(1, screen_num_cols, screen_num_lines - 3, 0)
+        display_info_subwin = self.screen
         _, display_info_subwin_num_cols = display_info_subwin.getmaxyx()
         if curses.has_colors():
             display_info_subwin.insstr(0, 0, str(" " * int(display_info_subwin_num_cols)), curses.color_pair(2))
@@ -118,7 +118,7 @@ class viewer_class():
         item_list = self.model.bottom_button_list
         labels_end_coord = ['','','','','','','','','','','','']
         screen_num_lines, _ = self.screen.getmaxyx()
-        bottom_menu_box = self.screen.subwin(0, 0, screen_num_lines - 1, 0)
+        bottom_menu_box = self.screen
         _, bottom_menu_box_num_cols = bottom_menu_box.getmaxyx()
         bottom_menu_box_num_cols -= 1
         req_button_number = len(item_list) + 1
@@ -216,7 +216,7 @@ class viewer_class():
         ]
 
         num_lines, _ = self.screen.getmaxyx()
-        tags_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
+        tags_box = self.screen
         tags_box_num_lines, tags_box_num_cols = tags_box.getmaxyx()
 
         if curses.has_colors():
@@ -253,7 +253,7 @@ class viewer_class():
         no_text = self.model.window_quit_no_text
 
         num_lines, _ = self.screen.getmaxyx()
-        quit_box = self.screen.subwin(num_lines - 4, 0, 1, 0)
+        quit_box = self.screen
         quit_box_num_lines, quit_box_num_cols = quit_box.getmaxyx()
         # Display the Last box on the background
         self.display_method_by_window[self.model.last_window]()

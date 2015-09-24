@@ -14,8 +14,9 @@ import re
 
 
 class TaskSpooler(object):
-    def __init__(self):
-        self.command = self.check_taskspooler()
+    def __init__(self, model):
+        self.model = model
+        self.command = self.model.taskspooler_path
         self.remove_args = '-r'
         self.state_args = '-s'
         self.info_args = '-i'
@@ -59,13 +60,18 @@ class TaskSpooler(object):
         subprocess.call(command)
 
     def read_last_output_line(self, job_id=None):
+        cmd = ['tail', '-n', '1']
         if job_id is not None:
             output_file = self.get_output(job_id)
         else:
             output_file = self.get_output()
-        for line in open(output_file):
-            last = line
-        return str(last.rstrip(os.linesep))
+        cmd.append(output_file)
+        output = subprocess.check_output(cmd)
+        if output:
+            return output
+        else:
+            return ''
+
 
 
     def read_task_list(self):
@@ -149,9 +155,9 @@ class TaskSpooler(object):
         command = [self.command, self.output_args]
         if jobid is not None:
             command.append(jobid)
-        output = [subprocess.check_output(command)]
+        output = subprocess.check_output(command)
         if output:
-            return output[0].rstrip(os.linesep)
+            return output.rstrip(os.linesep)
         else:
             return None
 
@@ -386,7 +392,7 @@ class Prepare(object):
         if self.nice_path:
             cmd.append(unicode(self.nice_path, 'utf-8'))
             cmd.append(unicode("-n", 'utf-8'))
-            cmd.append(unicode(nice_priority, 'utf-8'))
+            cmd.append(unicode(hnice_priority, 'utf-8'))
 
         cmd.append(unicode(self.transcoder_path, 'utf-8'))
         cmd.append(unicode(file, 'utf-8'))
