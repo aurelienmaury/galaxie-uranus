@@ -12,33 +12,74 @@ import sys
 import io
 import fnmatch
 
-from subprocess import call, check_output, Popen, STDOUT, PIPE
-import string
+from subprocess import check_output, STDOUT
 
 import time
-from operator import itemgetter
 import subprocess
 import tempfile
 import re
+import string
 
-#######################################
-######DEFINE SOME BASIC VARIABLES######
-#######################################
-scriptname = os.path.basename(os.path.splitext(sys.argv[0])[0])
-scriptname_title = os.path.basename(os.path.splitext(sys.argv[0])[0])
-scriptname_title = scriptname_title.title() 
+# ######################################
+# #####DEFINE SOME BASIC VARIABLES######
+# ######################################
+script_name = os.path.basename(os.path.splitext(sys.argv[0])[0])
+script_name_title = os.path.basename(os.path.splitext(sys.argv[0])[0])
+script_name_title = script_name_title.title()
 version = "0.8"
 
-#User Setting
-#def_list = [ "480", "576", "720", "1080" ]
-#def_list = [ "1080" ]
-def_list = [ "720" ]
-#def_list = [ "576" ]
-#def_list = [ "480" ]
+# User Setting
+# def_list = [ "480", "576", "720", "1080" ]
+def_list = ["1080"]
+# def_list = ["720"]
+# def_list = ["576"]
+# def_list = ["480"]
+
+
+def build_final_summary_audio_list_str(count, track_info):
+
+        track_info_length = len(track_info)
+
+        audio_codec = ["AAC", "AC3", "DTS", "DTSHD", "DTS-HDMA", "MP3"]
+        if track_info[2].upper() in audio_codec:
+
+            if track_info_length == 7:
+                pass_through = " pass-through"
+            else:
+                pass_through = ""
+
+            line_to_return = "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(
+                track_info[2]) + pass_through + ", " + str(track_info[3]) + ", " + str(track_info[4])
+
+            if track_info_length != 5:
+                line_to_return += ", " + str(track_info[5]) + ", " + str(track_info[6])
+        else:
+
+            track_channel_is_five_one = (track_info[3].strip() == "5.1ch")
+
+            if track_channel_is_five_one:
+                bit_rate_audio = "384kps"
+            else:
+                bit_rate_audio = "128kps"
+
+            if track_info_length == 7:
+                seventh = ", " + str(track_info[6])
+            else:
+                seventh = ""
+
+            line_to_return = "  " + str(count) + "->" + str(track_info[0]) + ", " + str(
+                track_info[1]) + ", " + "AAC-LC converting" + ", " + str(
+                track_info[3]) + ", " + bit_rate_audio + ", " + str(track_info[4])
+
+            if track_info_length != 5:
+                line_to_return += ", " + str(track_info[5]) + seventh
+
+        return line_to_return
+
 
 
 class HandBrake(object):
-    def __init__(self, filename, max_height=720, enable_multi_language=0, lang1='fra', lang2='eng'):
+    def __init__(self, filename, max_height=720, enable_multi_language=1, lang1='fra', lang2='eng'):
         self.handbrakecli_path = self.check_handbrake()
         # Source file and output file name
         video_file_name = filename
@@ -49,17 +90,17 @@ class HandBrake(object):
         self.working_dir = os.path.realpath(working_dir)
         self.video_short_name = video_short_name
 
-        if enable_multi_language is not None:
+        if enable_multi_language:
             self.enable_multi_language = enable_multi_language
         else:
             self.enable_multi_language = None
 
-        if lang1 is not None:
+        if lang1:
             self.lang1 = lang1
         else:
             self.lang1 = None
 
-        if lang1 is not None:
+        if lang2:
             self.lang2 = lang2
         else:
             self.lang2 = None
@@ -99,38 +140,43 @@ class HandBrake(object):
                 if count == 1:
                     self.audio_arg = str(track_info[0])
                     self.audio_aname = str(track_info[1])
-                    if (track_info[2] == "AAC") or (track_info[2] == "aac"):
+                    if track_info[2].upper == "AAC":
                         self.audio_encoder_arg = "copy:aac"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
-                    elif (track_info[2] == "AC3") or (track_info[2] == "ac3"):
+                    elif track_info[2].upper == "AC3":
                         self.audio_encoder_arg = "copy:ac3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
-                    elif (track_info[2] == "DTS") or (track_info[2] == "dts"):
+                    elif track_info[2].upper == "DTS":
                         self.audio_encoder_arg = "copy:dts"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
-                    elif (track_info[2] == "DTSHD") or (track_info[2] == "dtshd"):
+                    elif track_info[2].upper == "DTSHD":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
-                    elif (track_info[2] == "MP3") or (track_info[2] == "mp3"):
+                    elif track_info[2].upper == "DTS-HDMA":
+                        self.audio_encoder_arg = "copy:dtshd"
+                        self.audio_bit_rate_arg = "Auto"
+                        self.audio_sample_rate_arg = "Auto"
+                        self.audio_mix_down_arg = "none"
+                    elif track_info[2].upper == "MP3":
                         self.audio_encoder_arg = "copy:mp3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                     else:
-                        if track_info[3] == "2.0ch":
+                        if track_info[3].strip() == "2.0ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "128"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "dpl2"
-                        if track_info[3] == "5.1ch":
+                        if track_info[3].strip() == "5.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "384"
                             self.audio_sample_rate_arg = "Auto"
@@ -138,27 +184,32 @@ class HandBrake(object):
                 elif not count == 1:
                     self.audio_arg = str(self.audio_arg + "," + str(track_info[0]))
                     self.audio_aname = str(self.audio_aname) + "," + str(track_info[1])
-                    if (track_info[2] == "AAC") or (track_info[2] == "aac"):
+                    if track_info[2].upper == "AAC":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
-                    elif (track_info[2] == "AC3") or (track_info[2] == "ac3"):
+                    elif track_info[2].upper == "AC3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:ac3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
-                    elif (track_info[2] == "DTS") or (track_info[2] == "dts"):
+                    elif track_info[2].upper == "DTS":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
-                    elif (track_info[2] == "DTSHD") or (track_info[2] == "dtshd"):
+                    elif track_info[2].upper == "DTSHD":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
-                    elif (track_info[2] == "MP3") or (track_info[2] == "mp3"):
+                    elif track_info[2].upper == "DTS-HDMA":
+                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
+                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
+                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                    elif track_info[2].upper == "MP3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:mp3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
@@ -198,7 +249,7 @@ class HandBrake(object):
         self.video_fps = float(self.scan_result[6])
         self.x264_opts = "open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:vbv-maxrate=24000"
         # Video Picture size
-        self.vcodec = self.scan_result[9]
+        self.video_codec = self.scan_result[9]
 
         size = self.scan_result[3].split('x')
         self.video_width = int(size[0])
@@ -208,11 +259,11 @@ class HandBrake(object):
             self.video_height = int(self.max_height)
             self.video_width = int(round(int(self.video_height) * float(self.scan_result[5])))
         else:
-            autocrop = self.scan_result[7].split('/')
-            substract_to_w = int(autocrop[2]) + int(autocrop[3])
-            substract_to_h = int(autocrop[0]) + int(autocrop[0])
-            self.video_height = int(self.video_height - substract_to_h)
-            self.video_width = int(self.video_width - substract_to_w)
+            auto_crop = self.scan_result[7].split('/')
+            subtract_to_w = int(auto_crop[2]) + int(auto_crop[3])
+            subtract_to_h = int(auto_crop[0]) + int(auto_crop[0])
+            self.video_height = int(self.video_height - subtract_to_h)
+            self.video_width = int(self.video_width - subtract_to_w)
 
         if int(self.video_width) > int(self.max_width):
             self.video_width = int(self.max_width)
@@ -628,55 +679,26 @@ class HandBrake(object):
                 # Add Native Language
                 if self.primary_language:
                     for I in audio_tracks_list:
-                        if len(I) == 5:
-                            if I[4] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 6:
-                            if I[5] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 7:
-                            if I[6] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
+                        if I[4] == str(lang_iso639_pattern + self.primary_language):
+                            audio_tracks_list_shorted.append(I)
                 # Add Secondary Language
                 if self.secondary_language:
                     for I in audio_tracks_list:
-                        if len(I) == 5:
-                            if I[4] == str(lang_iso639_pattern + self.secondary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 6:
-                            if I[5] == str(lang_iso639_pattern + self.secondary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 7:
-                            if I[6] == str(lang_iso639_pattern + self.secondary_language):
-                                audio_tracks_list_shorted.append(I)
+                        if I[4] == str(lang_iso639_pattern + self.secondary_language):
+                            audio_tracks_list_shorted.append(I)
                 # Add the rest
                 for I in audio_tracks_list:
-                    if len(I) == 5:
-                        if not (I[4] == str(lang_iso639_pattern + self.primary_language) or I[4] == str(
-                                    lang_iso639_pattern + self.secondary_language)):
-                            audio_tracks_list_shorted.append(I)
-                    if len(I) == 6:
-                        if not (I[5] == str(lang_iso639_pattern + self.primary_language) or I[5] == str(
-                                    lang_iso639_pattern + self.secondary_language)):
-                            audio_tracks_list_shorted.append(I)
-                    if len(I) == 7:
-                        if not (I[6] == str(lang_iso639_pattern + self.primary_language) or I[6] == str(
-                                    lang_iso639_pattern + self.secondary_language)):
-                            audio_tracks_list_shorted.append(I)
+                    if not (I[4] == str(lang_iso639_pattern + self.primary_language) or I[4] == str(
+                                lang_iso639_pattern + self.secondary_language)):
+                        audio_tracks_list_shorted.append(I)
+
             else:
                 # Here Multi Language is disable but we test if a particular language have to be select
                 # Add Native Language
                 if self.primary_language:
                     for I in audio_tracks_list:
-                        if len(I) == 5:
-                            if I[4] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 6:
-                            if I[5] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
-                        if len(I) == 7:
-                            if I[6] == str(lang_iso639_pattern + self.primary_language):
-                                audio_tracks_list_shorted.append(I)
+                        if I[4] == str(lang_iso639_pattern + self.primary_language):
+                            audio_tracks_list_shorted.append(I)
                     # In case where the the Native Language is not detect use the frist track
                     if len(audio_tracks_list_shorted) == 0:
                         audio_tracks_list_shorted.append(audio_tracks_list[0])
@@ -791,34 +813,34 @@ class HandBrake(object):
         return seconds
 
 
-######Check if a parameter is all ready present######
-#####################################################
+# #####Check if a parameter is all ready present######
+# ####################################################
 if len(sys.argv) < 2:
     print ""
-    print scriptname_title + " v" + version
+    print script_name_title + " v" + version
     # source file does not exist
     print " Please, invoke it script with the path of a movie"
     print " Fews Exemples: "
-    print " ./" + scriptname + " ./my_super_movie.ts"
-    print " ./" + scriptname + " ../a/other/directory/my_super_movie.ts"
-    print " ./" + scriptname + " /full/path/to/the/directory/my_super_movie.ts"
-    print " ./" + scriptname + " \"/full/path/to/the/directory/With space name.ts\""
+    print " ./" + script_name + " ./my_super_movie.ts"
+    print " ./" + script_name + " ../a/other/directory/my_super_movie.ts"
+    print " ./" + script_name + " /full/path/to/the/directory/my_super_movie.ts"
+    print " ./" + script_name + " \"/full/path/to/the/directory/With space name.ts\""
     exit(1)
 
-######SOURCE FILE CHECK######
-############################
+# #####SOURCE FILE CHECK######
+# ###########################
 if not os.path.isfile(sys.argv[1]):
     print ""
-    print scriptname_title + " v" + version
+    print script_name_title + " v" + version
     # source file does not exist
     print " Error: Source file not found "
     print " Maybe wrong path or missing permissions?"
     print " Please, invoke it script with the path of a movie"
     print " Fews Exemples: "
-    print " ./" + scriptname + " ./my_super_movie.ts"
-    print " ./" + scriptname + " ../a/other/directory/my_super_movie.ts"
-    print " ./" + scriptname + " /full/path/to/the/directory/my_super_movie.ts"
-    print " ./" + scriptname + " \"/full/path/to/the/directory/With space name.ts\""
+    print " ./" + script_name + " ./my_super_movie.ts"
+    print " ./" + script_name + " ../a/other/directory/my_super_movie.ts"
+    print " ./" + script_name + " /full/path/to/the/directory/my_super_movie.ts"
+    print " ./" + script_name + " \"/full/path/to/the/directory/With space name.ts\""
     exit(1)
 
 # Take the first and unic parameter and consider it as the file to encode
@@ -829,35 +851,35 @@ sys.stdout.flush()
 hb = HandBrake(video_filename)
 sys.stdout.write("\x1b[2K")
 sys.stdout.write("\r")
-#######################################
-### Small Header just for fun #########
-#######################################
+# ######################################
+# ## Small Header just for fun #########
+# ######################################
 print ""
 
 #######################################
 
-######USUAL VARIABLES######
-###########################
+# #####USUAL VARIABLES######
+# ##########################
 video_title = hb.file_title
+video_codec = hb.video_codec
 duration = hb.scan_result[2]
 seconds = hb.dur2sec(duration)
 input_file = hb.input_file
 size = hb.scan_result[3]
-vcodec = hb.vcodec
-autocrop = hb.scan_result[7]
+auto_crop = hb.scan_result[7]
 pixel_aspect = hb.scan_result[4]
 display_aspect = hb.scan_result[5]
-display_aspect_infos = hb.get_display_aspect_infos(str(display_aspect))
+display_aspect_info = hb.get_display_aspect_info(str(display_aspect))
 fps = hb.scan_result[6]
-fps_infos = hb.get_fps_infos(fps)
+fps_info = hb.get_fps_info(fps)
 print "Title          : " + "\"" + str(video_title) + "\"" + ", Duration: " + str(duration) + " (" + str(seconds) + " Secs)"
 print " Source        : " + str(input_file)
 print " Dimensions    : " + str(size)
-print " Video Codec   : " + str(vcodec.title())
-print " Autocrop      : " + str(autocrop)
+print " Video Codec   : " + str(video_codec.title())
+print " Autocrop      : " + str(auto_crop)
 print " Pixel Aspect  : " + str(pixel_aspect)
-print " Display Aspect: " + str(display_aspect) + ":1 " + str(display_aspect_infos)
-print " Frame Rate    : " + str(fps_infos)
+print " Display Aspect: " + str(display_aspect) + ":1 " + str(display_aspect_info)
+print " Frame Rate    : " + str(fps_info)
 
 if hb.detected_audio:
     print " Audio Track(s): "
@@ -880,12 +902,12 @@ if hb.detected_subtitle:
 
 print ""
 for height in def_list:
-    hb = HandBrake(video_filename, max_height=int(height), enable_multi_language=0, lang1='fra', lang2='eng')
+    hb = HandBrake(video_filename, max_height=int(height), enable_multi_language=1, lang1='fra', lang2='eng')
 
     print "Processing     : " + str(height) + "p " + hb.video_target_ext + " file"
     output_file = hb.output_file
     fps = hb.scan_result[6]
-    fps_infos = hb.get_fps_infos(fps)
+    fps_info = hb.get_fps_info(fps)
     width = hb.video_width
     height = hb.video_height
     res_txt = hb.video_res_txt
@@ -895,7 +917,7 @@ for height in def_list:
     h264_level = hb.h264_level
     bpf = ("%.3f" % float(hb.bpf))
     display_aspect = hb.scan_result[5]
-    display_aspect_infos = hb.get_display_aspect_infos(str(display_aspect))
+    display_aspect_info = hb.get_display_aspect_info(str(display_aspect))
 
     ## Encode multi resolution 
     print " Destination   : " + str(output_file)
@@ -904,66 +926,16 @@ for height in def_list:
     print " x264 Preset   : " + str(x264_preset.title())
     print " H.264 Profile : " + str(h264_profile.title())
     print " H.264 Level   : " + str(h264_level)
-    print " Display Aspect: " + str(display_aspect) + ":1 " + str(display_aspect_infos)
-    print " Frame Rate    : " + str(fps_infos)
+    print " Display Aspect: " + str(display_aspect) + ":1 " + str(display_aspect_info)
+    print " Frame Rate    : " + str(fps_info)
     if hb.detected_audio:
         print " Audio Track(s): "
         count = 1
         for track_info in hb.scan_result[11]:
-            if len(track_info) == 7:
-                line = "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + " pass-through, " + str(track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5]) + ", " + str(track_info[6])
-                if (track_info[2] == "AAC") or (track_info[2] == "aac"):
-                    print line
-                elif (track_info[2] == "AC3") or (track_info[2] == "ac3"):
-                    print line
-                elif (track_info[2] == "DTS") or (track_info[2] == "dts"):
-                    print line
-                elif (track_info[2] == "DTSHD") or (track_info[2] == "dtshd"):
-                    print line
-                elif (track_info[2] == "MP3") or (track_info[2] == "mp3"):
-                    print line
-                else:
-                    if track_info[3] == "2.0ch" or track_info[3] == "2.0 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "AAC-LC converting" + ", " + str(track_info[3]) + ", " + "128kps" + ", " + str(track_info[4]) + ", " + str(track_info[5]) + ", " + str(track_info[6])
-                    if track_info[3] == "5.1ch" or track_info[3] == "5.1 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "AAC-LC converting" + ", " + str(track_info[3]) + ", " + "384kps" + ", " + str(track_info[4]) + ", " + str(track_info[5]) + ", " + str(track_info[6])
-
-            elif len(track_info) == 6:
-                line =  "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5])
-                if (track_info[2] == "AAC") or (track_info[2] == "aac"):
-                    print line
-                elif (track_info[2] == "AC3") or (track_info[2] == "ac3"):
-                    print line
-                elif (track_info[2] == "DTS") or (track_info[2] == "dts"):
-                    print line
-                elif (track_info[2] == "DTSHD") or (track_info[2] == "dtshd"):
-                    print line
-                elif (track_info[2] == "MP3") or (track_info[2] == "mp3"):
-                    print line
-                else:
-                    if track_info[3] == "2.0ch" or track_info[3] == "2.0 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "ACC-LC converting" + ", " + str(track_info[3]) + ", " + "128kps" + ", " + str(track_info[4]) + ", " + str(track_info[5]) 
-                    if track_info[3] == "5.1ch" or track_info[3] == "5.1 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "ACC-LC converting" + ", " + str(track_info[3]) + ", " + "384kps" + ", " + str(track_info[4]) + ", " + str(track_info[5]) 
-
-            elif len(track_info) == 5:
-                line =  "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4])
-                if (track_info[2] == "AAC") or (track_info[2] == "aac"):
-                    print line
-                elif (track_info[2] == "AC3") or (track_info[2] == "ac3"):
-                    print line
-                elif (track_info[2] == "DTS") or (track_info[2] == "dts"):
-                    print line
-                elif (track_info[2] == "DTSHD") or (track_info[2] == "dtshd"):
-                    print line
-                elif (track_info[2] == "MP3") or (track_info[2] == "mp3"):
-                    print line
-                else:
-                    if track_info[3] == "2.0ch" or track_info[3] == "2.0 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "ACC-LC converting" + ", " + str(track_info[3]) + ", " + "128kps" + ", " + str(track_info[4])
-                    if track_info[3] == "5.1ch" or track_info[3] == "5.1 ch":
-                        print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + "ACC-LC converting" + ", " + str(track_info[3]) + ", " + "384kps" + ", " + str(track_info[4])
-
+            track_info_length = len(track_info)
+            if track_info_length in [7, 6, 5, 4]:
+                line = build_final_summary_audio_list_str(count, track_info)
+                print line
             count += 1
     if hb.detected_subtitle:
         subtitle_track_list_shorted = hb.scan_result[12]

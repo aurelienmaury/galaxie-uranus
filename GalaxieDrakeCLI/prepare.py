@@ -56,7 +56,7 @@ extension_list = [
     '*.wmv'
 ]
 #Limite the search
-extension_list = ['*.ts']
+#extension_list = ['*.ts']
 
 # Add path where the script is store to the environement var PATH
 # It permit to search transcoder.py by exemple
