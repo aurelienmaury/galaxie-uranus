@@ -145,6 +145,11 @@ class HandBrake(object):
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                    elif track_info[2].upper == "AAC-LC":
+                        self.audio_encoder_arg = "copy:aac"
+                        self.audio_bit_rate_arg = "Auto"
+                        self.audio_sample_rate_arg = "Auto"
+                        self.audio_mix_down_arg = "none"
                     elif track_info[2].upper == "AC3":
                         self.audio_encoder_arg = "copy:ac3"
                         self.audio_bit_rate_arg = "Auto"
@@ -185,6 +190,11 @@ class HandBrake(object):
                     self.audio_arg = str(self.audio_arg + "," + str(track_info[0]))
                     self.audio_aname = str(self.audio_aname) + "," + str(track_info[1])
                     if track_info[2].upper == "AAC":
+                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
+                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
+                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                    if track_info[2].upper == "AAC-LC":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
