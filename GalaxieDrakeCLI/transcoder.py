@@ -40,7 +40,7 @@ def build_final_summary_audio_list_str(count, track_info):
 
         track_info_length = len(track_info)
 
-        audio_codec = ["AAC", "AC3", "DTS", "DTSHD", "DTS-HDMA", "MP3"]
+        audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTSHD", "DTS-HDMA", "MP3"]
         if track_info[2].upper() in audio_codec:
 
             if track_info_length == 7:
