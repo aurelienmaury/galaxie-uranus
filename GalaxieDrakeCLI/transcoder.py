@@ -40,7 +40,7 @@ def build_final_summary_audio_list_str(count, track_info):
 
         track_info_length = len(track_info)
 
-        audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTSHD", "DTS-HDMA", "MP3"]
+        audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTS-ES", "DTSHD", "DTS-HDMA", "MP3"]
         if track_info[2].upper() in audio_codec:
 
             if track_info_length == 7:
@@ -160,6 +160,11 @@ class HandBrake(object):
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                    elif track_info[2].upper == "DTS-ES":
+                        self.audio_encoder_arg = "copy:dts"
+                        self.audio_bit_rate_arg = "Auto"
+                        self.audio_sample_rate_arg = "Auto"
+                        self.audio_mix_down_arg = "none"
                     elif track_info[2].upper == "DTSHD":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
@@ -185,7 +190,18 @@ class HandBrake(object):
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "384"
                             self.audio_sample_rate_arg = "Auto"
-                            self.audio_mix_down_arg = "6ch"
+                            self.audio_mix_down_arg = "5point1"
+                        if track_info[3].strip() == "6.1ch":
+                            self.audio_encoder_arg = "faac"
+                            self.audio_bit_rate_arg = "448"
+                            self.audio_sample_rate_arg = "Auto"
+                            self.audio_mix_down_arg = "6point1"
+                        if track_info[3].strip() == "7.1ch":
+                            self.audio_encoder_arg = "faac"
+                            self.audio_bit_rate_arg = "768"
+                            self.audio_sample_rate_arg = "Auto"
+                            self.audio_mix_down_arg = "7point1"
+
                 elif not count == 1:
                     self.audio_arg = str(self.audio_arg + "," + str(track_info[0]))
                     self.audio_aname = str(self.audio_aname) + "," + str(track_info[1])
@@ -205,6 +221,11 @@ class HandBrake(object):
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                     elif track_info[2].upper == "DTS":
+                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
+                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
+                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                    elif track_info[2].upper == "DTS-ES":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
@@ -234,7 +255,17 @@ class HandBrake(object):
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "384"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
-                            self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "6ch"
+                            self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "5point1"
+                        elif track_info[3] == "6.1ch":
+                            self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
+                            self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "448"
+                            self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                            self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "6point1"
+                        elif track_info[3] == "7.1ch":
+                            self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
+                            self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "768"
+                            self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                            self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "7point1"
 
                 count += 1
                 # print "self.AUDIO_ARG = " + str(self.AUDIO_ARG)
