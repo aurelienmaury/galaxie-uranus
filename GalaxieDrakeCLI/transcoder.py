@@ -54,10 +54,16 @@ def build_final_summary_audio_list_str(count, track_info):
             if track_info_length != 5:
                 line_to_return += ", " + str(track_info[5]) + ", " + str(track_info[6])
         else:
-
+            track_channel_is_stereo = (track_info[3].strip() == "2.0ch")
             track_channel_is_five_one = (track_info[3].strip() == "5.1ch")
+            track_channel_is_six_one = (track_info[3].strip() == "6.1ch")
+            track_channel_is_seven_one = (track_info[3].strip() == "7.1ch")
 
-            if track_channel_is_five_one:
+            if track_channel_is_seven_one:
+                bit_rate_audio = "768kps"
+            elif track_channel_is_six_one:
+                bit_rate_audio = "448kps"
+            elif track_channel_is_five_one:
                 bit_rate_audio = "384kps"
             else:
                 bit_rate_audio = "128kps"
@@ -145,62 +151,74 @@ class HandBrake(object):
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "AAC-LC":
                         self.audio_encoder_arg = "copy:aac"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "AC3":
                         self.audio_encoder_arg = "copy:ac3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "DTS":
                         self.audio_encoder_arg = "copy:dts"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "DTS-ES":
                         self.audio_encoder_arg = "copy:dts"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "DTSHD":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "DTS-HDMA":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     elif track_info[2].upper == "MP3":
                         self.audio_encoder_arg = "copy:mp3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
                     else:
                         if track_info[3].strip() == "2.0ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "128"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "dpl2"
+                            self.audio_normalize_mix_arg = "1"
                         if track_info[3].strip() == "5.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "384"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "5point1"
+                            self.audio_normalize_mix_arg = "1"
                         if track_info[3].strip() == "6.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "448"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "6point1"
+                            self.audio_normalize_mix_arg = "1"
                         if track_info[3].strip() == "7.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "768"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "7point1"
+                            self.audio_normalize_mix_arg = "1"
 
                 elif not count == 1:
                     self.audio_arg = str(self.audio_arg + "," + str(track_info[0]))
@@ -210,69 +228,82 @@ class HandBrake(object):
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     if track_info[2].upper == "AAC-LC":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "AC3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:ac3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "DTS":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "DTS-ES":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "DTSHD":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "DTS-HDMA":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     elif track_info[2].upper == "MP3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:mp3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     else:
                         if track_info[3] == "2.0ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "128"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "dpl2"
+                            self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                         elif track_info[3] == "5.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "384"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "5point1"
+                            self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                         elif track_info[3] == "6.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "448"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "6point1"
+                            self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                         elif track_info[3] == "7.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "768"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "7point1"
+                            self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
 
                 count += 1
                 # print "self.AUDIO_ARG = " + str(self.AUDIO_ARG)
-                # print "self.AUDIO_ENCODER_ARG = " + str(self.AUDIO_ENCODER_ARG)
-                # print "self.AUDIO_BITRATE_ARG = " + str(self.AUDIO_BITRATE_ARG)
-                # print "self.AUDIO_SAMPLERATE_ARG = " + str(self.AUDIO_SAMPLERATE_ARG)
-                # print "self.AUDIO_MIXDOWN_ARG = " + str(self.AUDIO_MIXDOWN_ARG)
+                # print "self.audio_encoder_arg = " + str(self.audio_encoder_arg)
+                # print "self.audio_bit_rate_arg = " + str(self.audio_bit_rate_arg)
+                # print "self.audio_sample_rate_arg = " + str(self.audio_sample_rate_arg)
+                # print "self.audio_mix_down_arg = " + str(self.audio_mix_down_arg)
+                # print "self.audio_normalize_mix_arg = " + str(self.audio_normalize_mix_arg)
                 # print "self.AUDIO_ANAME = " + str(self.AUDIO_ANAME)
         # Subtitle Creation  list
         if self.detected_subtitle:
@@ -462,6 +493,9 @@ class HandBrake(object):
 
             cmd.append('--mixdown')
             cmd.append(str(self.audio_mix_down_arg))
+
+            cmd.append('--normalize-mix')
+            cmd.append(str(self.audio_normalize_mix_arg))
 
             cmd.append('--arate')
             cmd.append(str(self.audio_sample_rate_arg))
