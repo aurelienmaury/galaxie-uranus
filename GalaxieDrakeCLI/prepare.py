@@ -28,7 +28,7 @@ version = '0.3'
 # All multi-resolution files will be ignore during scan
 # That because they file are not consider as transcoding source.
 file_pattern_exception = '* - *p.mkv'
-
+quiet = 0
 # Transcoding take time then be nice with the system,
 # is not trivial, that permit to use the system for a other task
 # See: https://en.wikipedia.org/wiki/Nice_%28Unix%29
@@ -55,20 +55,20 @@ extension_list = [
     '*.vob',
     '*.wmv'
 ]
-# Limite the search
+# Limit the search
 # extension_list = ['*.ts']
 
-# Add path where the script is store to the environement var PATH
-# It permit to search transcoder.py by exemple
+# Add path where the script is store to the environment var PATH
+# It permit to search transcoder.py by example
 os.environ["PATH"] += os.pathsep + os.path.dirname(os.path.realpath(__file__))
 
 
 def which(program):
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    def is_exe(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
 
-    fpath, fname = os.path.split(program)
-    if fpath:
+    base_dir, base_name = os.path.split(program)
+    if base_dir:
         if is_exe(program):
             return program
     else:
@@ -80,7 +80,7 @@ def which(program):
     return None
 
 
-def get_dirs_list(base):
+def get_directory_list(base):
     return [x for x in glob.iglob(os.path.join(base, '*')) if os.path.isdir(x)]
 
 
@@ -126,7 +126,7 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
-class prepare(object):
+class Prepare(object):
     def __init__(self, workingdir):
         global query_label
         self.taskspooler_path = self.check_taskspooler
@@ -139,15 +139,15 @@ class prepare(object):
             print scriptname_title + " v" + version + " / " + self.tsp_get_version()
         else:
             print scriptname_title + " v" + version + " / " + self.tsp_get_version() + " / " + self.nice_get_version()
-        #######################################
-        self.workingdir = os.path.realpath(workingdir)
+        # ######################################
+        self.working_directory = os.path.realpath(workingdir)
         self.transcoder_path = self.check_transcoder
         # Test if the script can run without common errors
-        if not os.access(self.workingdir, os.F_OK):
-            print "Error: " + self.workingdir + " dont exist"
+        if not os.access(self.working_directory, os.F_OK):
+            print "Error: " + self.working_directory + " don't exist"
             sys.exit(1)
-        elif not os.access(self.workingdir, os.R_OK):
-            print "Error: " + self.workingdir + " can't be read"
+        elif not os.access(self.working_directory, os.R_OK):
+            print "Error: " + self.working_directory + " can't be read"
             sys.exit(1)
         elif not os.access(self.transcoder_path, os.R_OK):
             print "Error: " + self.transcoder_path + " can't be read"
@@ -161,7 +161,7 @@ class prepare(object):
             # Everything is test we can start to scan directory
             files_list_to_transcode = list()
             print " Transcoder Path: " + self.transcoder_path
-            print " Source Directory: " + self.workingdir + "/"
+            print " Source Directory: " + self.working_directory + "/"
             print ""
             print "Searching for: "
             for file_pattern in extension_list:
@@ -177,15 +177,15 @@ class prepare(object):
                 # Call Text Progress Bar
                 rows, columns = os.popen('stty size', 'r').read().split()
                 cli_progress_bar(
-                    "Scaning for " + file_pattern.upper()[2:] + ": ",
+                    "Scanning for " + file_pattern.upper()[2:] + ": ",
                     int(round(100 * count / len(extension_list))),
                     100,
                     int(columns)
                 )
 
-                # Scan directory recursivlly for Lower and Upper case file extension
-                files_lower = self.rglob(self.workingdir, file_pattern.lower())
-                files_upper = self.rglob(self.workingdir, file_pattern.upper())
+                # Scan directory recursively for Lower and Upper case file extension
+                files_lower = self.rglob(self.working_directory, file_pattern.lower())
+                files_upper = self.rglob(self.working_directory, file_pattern.upper())
 
                 # Add Lower case file extension to the final file list to encode
                 if len(files_lower):
@@ -215,13 +215,13 @@ class prepare(object):
                 for file_to_transcode in files_list_to_transcode:
                     print " " + file_to_transcode
 
-            # Creat one task by file to transcode and send it to taskspooler queue
+            # Create one task by file to transcode and send it to taskspooler queue
             print ""
             if len(files_list_to_transcode):
                 if len(files_list_to_transcode) == 1:
-                    query_label = "Do you want creat transcoding task for it file ?"
+                    query_label = "Do you want create transcoding task for it file ?"
                 else:
-                    query_label = "Do you want creat transcoding tasks for they " + str(
+                    query_label = "Do you want create transcoding tasks for they " + str(
                         len(files_list_to_transcode)) + " files ?"
             if len(files_list_to_transcode) and query_yes_no(query_label):
                 # Print a Summary about number of files to transcode
@@ -256,7 +256,6 @@ class prepare(object):
 
         cmd.append(unicode(self.transcoder_path, 'utf-8'))
         cmd.append(unicode(file_to_encode, 'utf-8'))
-        # output = None
         output = subprocess.check_output(cmd)
         if output:
             output = output.rstrip(os.linesep)
@@ -286,8 +285,6 @@ class prepare(object):
                     sys.stdout.flush()
                     return 1
         return 0
-
-        # sys.exit(0)
 
     def tsp_job_status(self, jobid):
         cmd = list()
@@ -365,7 +362,7 @@ class prepare(object):
     def rglob(self, base, pattern):
         list_tmp = []
         list_tmp.extend(glob.glob(os.path.join(base, pattern)))
-        dirs = get_dirs_list(base)
+        dirs = get_directory_list(base)
         if len(dirs):
             for d in dirs:
                 list_tmp.extend(self.rglob(os.path.join(base, d), pattern))
@@ -375,7 +372,7 @@ class prepare(object):
     def check_transcoder(self):
         if not which("transcoder.py"):
             print "Error: Transcoder is require, for enable transcoding queue"
-            print "Error: Please install \"transcoder.py\" or verify it is aviable on your $PATH env var"
+            print "Error: Please install \"transcoder.py\" or verify it is available on your $PATH env var"
             print "Error: " + scriptname_title + " will abort ..."
             sys.exit(1)
         else:
@@ -385,7 +382,7 @@ class prepare(object):
     def check_taskspooler(self):
         if not which("tsp"):
             print "Error: Task Spooler is require, for enable transcoding queue"
-            print "Error: Please install \"task-spooler\" or verify it is aviable on your $PATH env var"
+            print "Error: Please install \"task-spooler\" or verify it is available on your $PATH env var"
             print "Error: " + scriptname_title + " will abort ..."
             sys.exit(1)
         else:
@@ -394,8 +391,8 @@ class prepare(object):
     @property
     def check_nice(self):
         if not which("nice"):
-            print "Warning: Nice is require, for fixe low process priority"
-            print "Warning: " + scriptname_title + " will continue without ..."
+            print " Warning: Nice is require, for set low process priority"
+            print " Warning: " + scriptname_title + " will continue without ..."
             return None
         else:
             return which("nice")
@@ -408,7 +405,7 @@ if len(sys.argv) < 2:
     print scriptname_title + " v" + version
     print " Please, invoke it script with the path of a directory"
     print " It directory will be use as Movie source directory"
-    print " Fews Exemples: "
+    print " Examples: "
     print " ./" + scriptname + " ./"
     print " ./" + scriptname + " ../a/other/directory"
     print " ./" + scriptname + " /full/path/to/the/directory"
@@ -423,7 +420,7 @@ elif not os.path.isdir(sys.argv[1]):
     print " Error: Directory not found "
     print " Maybe wrong path or missing permissions?"
     print " Please, invoke it script with the path of a valid directory"
-    print " Fews Exemples: "
+    print " Examples: "
     print " ./" + scriptname + " ./"
     print " ./" + scriptname + " ../a/other/directory"
     print " ./" + scriptname + " /full/path/to/the/directory/"
@@ -433,4 +430,4 @@ elif not os.path.isdir(sys.argv[1]):
 else:
     # Take the first and unic parameter and consider it is a directory
     # APPLICATION START
-    p = prepare(sys.argv[1])
+    p = Prepare(sys.argv[1])
