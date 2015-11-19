@@ -13,9 +13,9 @@ import sys
 import subprocess
 import re
 
-#######################################
-######DEFINE SOME BASIC VARIABLES######
-#######################################
+# ######################################
+# #####DEFINE SOME BASIC VARIABLES######
+# ######################################
 scriptname = os.path.basename(sys.argv[0])
 scriptname_title = os.path.basename(os.path.splitext(sys.argv[0])[0])
 scriptname_title = scriptname_title.title()
@@ -55,21 +55,85 @@ extension_list = [
     '*.vob',
     '*.wmv'
 ]
-#Limite the search
-#extension_list = ['*.ts']
+# Limite the search
+# extension_list = ['*.ts']
 
 # Add path where the script is store to the environement var PATH
 # It permit to search transcoder.py by exemple
 os.environ["PATH"] += os.pathsep + os.path.dirname(os.path.realpath(__file__))
 
 
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
+
+def get_dirs_list(base):
+    return [x for x in glob.iglob(os.path.join(base, '*')) if os.path.isdir(x)]
+
+
+def cli_progress_bar(label, val, end_val, bar_length):
+    bar_length = int(bar_length - int(len(label) + 7))
+    percent = float(val) / end_val
+    hashes = '#' * int(round(percent * bar_length))
+    spaces = ' ' * (bar_length - len(hashes))
+    sys.stdout.write("\r" + label + "[{0}] {1}%".format(hashes + spaces, int(round(percent * 100))))
+    sys.stdout.flush()
+
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+
+
 class prepare(object):
     def __init__(self, workingdir):
-        self.taskspooler_path = self.check_taskspooler()
-        self.nice_path = self.check_nice()
-        #######################################
-        ### Small Header just for fun #########
-        #######################################
+        global query_label
+        self.taskspooler_path = self.check_taskspooler
+        self.nice_path = self.check_nice
+        # ######################################
+        # ## Small Header just for fun #########
+        # ######################################
         print ""
         if not self.nice_path:
             print scriptname_title + " v" + version + " / " + self.tsp_get_version()
@@ -77,7 +141,7 @@ class prepare(object):
             print scriptname_title + " v" + version + " / " + self.tsp_get_version() + " / " + self.nice_get_version()
         #######################################
         self.workingdir = os.path.realpath(workingdir)
-        self.transcoder_path = self.check_transcoder()
+        self.transcoder_path = self.check_transcoder
         # Test if the script can run without common errors
         if not os.access(self.workingdir, os.F_OK):
             print "Error: " + self.workingdir + " dont exist"
@@ -112,7 +176,7 @@ class prepare(object):
 
                 # Call Text Progress Bar
                 rows, columns = os.popen('stty size', 'r').read().split()
-                self.cli_progress_bar(
+                cli_progress_bar(
                     "Scaning for " + file_pattern.upper()[2:] + ": ",
                     int(round(100 * count / len(extension_list))),
                     100,
@@ -159,7 +223,7 @@ class prepare(object):
                 else:
                     query_label = "Do you want creat transcoding tasks for they " + str(
                         len(files_list_to_transcode)) + " files ?"
-            if len(files_list_to_transcode) and self.query_yes_no(query_label):
+            if len(files_list_to_transcode) and query_yes_no(query_label):
                 # Print a Summary about number of files to transcode
                 print ""
                 if len(files_list_to_transcode) == 1:
@@ -182,47 +246,7 @@ class prepare(object):
             else:
                 print "Nothing to do ..."
 
-    def query_yes_no(self, question, default="yes"):
-        """Ask a yes/no question via raw_input() and return their answer.
-    
-        "question" is a string that is presented to the user.
-        "default" is the presumed answer if the user just hits <Enter>.
-            It must be "yes" (the default), "no" or None (meaning
-            an answer is required of the user).
-    
-        The "answer" return value is True for "yes" or False for "no".
-        """
-        valid = {"yes": True, "y": True, "ye": True,
-                 "no": False, "n": False}
-        if default is None:
-            prompt = " [y/n] "
-        elif default == "yes":
-            prompt = " [Y/n] "
-        elif default == "no":
-            prompt = " [y/N] "
-        else:
-            raise ValueError("invalid default answer: '%s'" % default)
-
-        while True:
-            sys.stdout.write(question + prompt)
-            choice = raw_input().lower()
-            if default is not None and choice == '':
-                return valid[default]
-            elif choice in valid:
-                return valid[choice]
-            else:
-                sys.stdout.write("Please respond with 'yes' or 'no' "
-                                 "(or 'y' or 'n').\n")
-
-    def cli_progress_bar(self, label, val, end_val, bar_length):
-        bar_length = int(bar_length - int(len(label) + 7))
-        percent = float(val) / end_val
-        hashes = '#' * int(round(percent * bar_length))
-        spaces = ' ' * (bar_length - len(hashes))
-        sys.stdout.write("\r" + label + "[{0}] {1}%".format(hashes + spaces, int(round(percent * 100))))
-        sys.stdout.flush()
-
-    def add_transcode_task(self, file):
+    def add_transcode_task(self, file_to_encode):
         cmd = list()
         cmd.append(unicode(self.taskspooler_path, 'utf-8'))
         if self.nice_path:
@@ -231,7 +255,7 @@ class prepare(object):
             cmd.append(unicode(nice_priority, 'utf-8'))
 
         cmd.append(unicode(self.transcoder_path, 'utf-8'))
-        cmd.append(unicode(file, 'utf-8'))
+        cmd.append(unicode(file_to_encode, 'utf-8'))
         # output = None
         output = subprocess.check_output(cmd)
         if output:
@@ -243,15 +267,15 @@ class prepare(object):
         # Constitute Searching Pattern inside the TaskSpooler
         searching_command_txt = ""
         if self.nice_path:
-            searching_command_txt = searching_command_txt + str(self.nice_path)
-            searching_command_txt = searching_command_txt + " "
-            searching_command_txt = searching_command_txt + str("-n")
-            searching_command_txt = searching_command_txt + " "
-            searching_command_txt = searching_command_txt + str(nice_priority)
-            searching_command_txt = searching_command_txt + " "
-        searching_command_txt = searching_command_txt + str(self.transcoder_path)
-        searching_command_txt = searching_command_txt + " "
-        searching_command_txt = searching_command_txt + str(file_to_transcode)
+            searching_command_txt += str(self.nice_path)
+            searching_command_txt += " "
+            searching_command_txt += str("-n")
+            searching_command_txt += " "
+            searching_command_txt += str(nice_priority)
+            searching_command_txt += " "
+        searching_command_txt += str(self.transcoder_path)
+        searching_command_txt += " "
+        searching_command_txt += str(file_to_transcode)
 
         # Deal with job_list
         job_list = (self.tsp_get_job_list())
@@ -275,12 +299,11 @@ class prepare(object):
             output = output.rstrip(os.linesep)
             return output
         else:
-            return "unknow"
+            return "unknown"
 
     def tsp_job_information(self, jobid):
         cmd = list()
         output = list()
-        tmp_output = list()
         cmd.append(unicode(self.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-i", 'utf-8'))
         cmd.append(unicode(jobid, 'utf-8'))
@@ -318,7 +341,6 @@ class prepare(object):
     def tsp_get_version(self):
         cmd = list()
         output = list()
-        tmp_output = list()
         cmd.append(unicode(self.taskspooler_path, 'utf-8'))
         cmd.append(unicode("-V", 'utf-8'))
         output.append(subprocess.check_output(cmd))
@@ -326,12 +348,11 @@ class prepare(object):
             tmp_output = re.split(r' - ', output[0])
             return tmp_output[0]
         else:
-            return "Task Spooler v(unknow)"
+            return "Task Spooler v(unknown)"
 
     def nice_get_version(self):
         cmd = list()
         output = list()
-        tmp_output = list()
         cmd.append(unicode(self.nice_path, 'utf-8'))
         cmd.append(unicode("--version", 'utf-8'))
         output.append(subprocess.check_output(cmd))
@@ -339,67 +360,49 @@ class prepare(object):
             tmp_output = re.split(r'\n', output[0])
             return tmp_output[0].title()
         else:
-            return "Nice v(unknow)"
-
-    def _getDirs(self, base):
-        return [x for x in glob.iglob(os.path.join(base, '*')) if os.path.isdir(x)]
+            return "Nice v(unknown)"
 
     def rglob(self, base, pattern):
-        list = []
-        list.extend(glob.glob(os.path.join(base, pattern)))
-        dirs = self._getDirs(base)
+        list_tmp = []
+        list_tmp.extend(glob.glob(os.path.join(base, pattern)))
+        dirs = get_dirs_list(base)
         if len(dirs):
             for d in dirs:
-                list.extend(self.rglob(os.path.join(base, d), pattern))
-        return list
+                list_tmp.extend(self.rglob(os.path.join(base, d), pattern))
+        return list_tmp
 
-    def which(self, program):
-        def is_exe(fpath):
-            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-        fpath, fname = os.path.split(program)
-        if fpath:
-            if is_exe(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if is_exe(exe_file):
-                    return exe_file
-        return None
-
+    @property
     def check_transcoder(self):
-        if not self.which("transcoder.py"):
+        if not which("transcoder.py"):
             print "Error: Transcoder is require, for enable transcoding queue"
             print "Error: Please install \"transcoder.py\" or verify it is aviable on your $PATH env var"
             print "Error: " + scriptname_title + " will abort ..."
             sys.exit(1)
         else:
-            return self.which("transcoder.py")
-        return None
+            return which("transcoder.py")
 
+    @property
     def check_taskspooler(self):
-        if not self.which("tsp"):
+        if not which("tsp"):
             print "Error: Task Spooler is require, for enable transcoding queue"
             print "Error: Please install \"task-spooler\" or verify it is aviable on your $PATH env var"
             print "Error: " + scriptname_title + " will abort ..."
             sys.exit(1)
         else:
-            return self.which("tsp")
-        return None
+            return which("tsp")
 
+    @property
     def check_nice(self):
-        if not self.which("nice"):
+        if not which("nice"):
             print "Warning: Nice is require, for fixe low process priority"
             print "Warning: " + scriptname_title + " will continue without ..."
             return None
         else:
-            return self.which("nice")
-        return None
+            return which("nice")
 
-######Check if a parameter is all ready present######
-#####################################################
+
+# #####Check if a parameter is all ready present######
+# ####################################################
 if len(sys.argv) < 2:
     print ""
     print scriptname_title + " v" + version
@@ -412,8 +415,8 @@ if len(sys.argv) < 2:
     print " ./" + scriptname + " \"/full/path/to/the/directory/With space name/\""
     exit(1)
 
-######SOURCE FILE CHECK######
-############################
+# #####SOURCE FILE CHECK######
+# ###########################
 elif not os.path.isdir(sys.argv[1]):
     print ""
     print scriptname_title + " v" + version
