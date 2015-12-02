@@ -41,7 +41,7 @@ def_list = ["1080"]
 def build_final_summary_audio_list_str(track_number, track_information):
     track_information_length = len(track_information)
 
-    audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTS-ES", "DTSHD", "DTS-HDMA", "DTS-HD MA", "DTS-HD HRA", "MP3"]
+    audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTS-ES", "DTSHD", "DTS-HDMA", "DTS-HDHRA", "MP3"]
     if track_information[2].upper() in audio_codec:
 
         if track_information_length == 7:
@@ -202,13 +202,7 @@ class HandBrake(object):
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_information[2].upper == "DTS-HD MA":
-                        self.audio_encoder_arg = "copy:dtshd"
-                        self.audio_bit_rate_arg = "Auto"
-                        self.audio_sample_rate_arg = "Auto"
-                        self.audio_mix_down_arg = "none"
-                        self.audio_normalize_mix_arg = "1"
-                    elif track_information[2].upper == "DTS-HD HRA":
+                    elif track_information[2].upper == "DTS-HDHRA":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
@@ -291,13 +285,7 @@ class HandBrake(object):
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_information[2].upper == "DTS-HD MA":
-                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
-                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
-                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
-                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
-                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_information[2].upper == "DTS-HD HRA":
+                    elif track_information[2].upper == "DTS-HDHRA":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
