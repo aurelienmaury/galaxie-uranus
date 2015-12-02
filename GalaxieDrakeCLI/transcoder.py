@@ -31,57 +31,71 @@ version = "0.8"
 # User Setting
 # def_list = [ "480", "576", "720", "1080" ]
 def_list = ["1080"]
+
+
 # def_list = ["720"]
 # def_list = ["576"]
 # def_list = ["480"]
 
 
-def build_final_summary_audio_list_str(count, track_info):
+def build_final_summary_audio_list_str(track_number, track_information):
+    track_information_length = len(track_information)
 
-        track_info_length = len(track_info)
+    audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTS-ES", "DTSHD", "DTS-HDMA", "DTS-HD MA", "DTS-HD HRA", "MP3"]
+    if track_information[2].upper() in audio_codec:
 
-        audio_codec = ["AAC", "AAC-LC", "AC3", "DTS", "DTS-ES", "DTSHD", "DTS-HDMA", "MP3"]
-        if track_info[2].upper() in audio_codec:
-
-            if track_info_length == 7:
-                pass_through = " pass-through"
-            else:
-                pass_through = ""
-
-            line_to_return = "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(
-                track_info[2]) + pass_through + ", " + str(track_info[3]) + ", " + str(track_info[4])
-
-            if track_info_length != 5:
-                line_to_return += ", " + str(track_info[5]) + ", " + str(track_info[6])
+        if track_information_length == 7:
+            pass_through = " pass-through"
         else:
-            track_channel_is_stereo = (track_info[3].strip() == "2.0ch")
-            track_channel_is_five_one = (track_info[3].strip() == "5.1ch")
-            track_channel_is_six_one = (track_info[3].strip() == "6.1ch")
-            track_channel_is_seven_one = (track_info[3].strip() == "7.1ch")
+            pass_through = ""
 
-            if track_channel_is_seven_one:
-                bit_rate_audio = "768kps"
-            elif track_channel_is_six_one:
-                bit_rate_audio = "448kps"
-            elif track_channel_is_five_one:
-                bit_rate_audio = "384kps"
-            else:
-                bit_rate_audio = "128kps"
+        line_to_return = ""
+        line_to_return += "  "
+        line_to_return += str(track_number)
+        line_to_return += "->"
+        line_to_return += str(track_information[0])
+        line_to_return += ", "
+        line_to_return += str(track_information[1])
+        line_to_return += ", "
+        line_to_return += str(track_information[2])
+        line_to_return += pass_through
+        line_to_return += ", "
+        line_to_return += str(track_information[3])
+        line_to_return += ", "
+        line_to_return += str(track_information[4])
 
-            if track_info_length == 7:
-                seventh = ", " + str(track_info[6])
-            else:
-                seventh = ""
+        if track_information_length != 5:
+            line_to_return += ", " + str(track_information[5]) + ", " + str(track_information[6])
+    else:
+        track_channel_is_stereo = (track_info[3].strip() == "2.0ch")
+        track_channel_is_five_one = (track_information[3].strip() == "5.1ch")
+        track_channel_is_six_one = (track_information[3].strip() == "6.1ch")
+        track_channel_is_seven_one = (track_information[3].strip() == "7.1ch")
 
-            line_to_return = "  " + str(count) + "->" + str(track_info[0]) + ", " + str(
-                track_info[1]) + ", " + "AAC-LC converting" + ", " + str(
-                track_info[3]) + ", " + bit_rate_audio + ", " + str(track_info[4])
+        if track_channel_is_seven_one:
+            bit_rate_audio = "768kps"
+        elif track_channel_is_six_one:
+            bit_rate_audio = "448kps"
+        elif track_channel_is_five_one:
+            bit_rate_audio = "384kps"
+        elif track_channel_is_stereo:
+            bit_rate_audio = "128kps"
+        else:
+            bit_rate_audio = "128kps"
 
-            if track_info_length != 5:
-                line_to_return += ", " + str(track_info[5]) + seventh
+        if track_information_length == 7:
+            seventh = ", " + str(track_information[6])
+        else:
+            seventh = ""
 
-        return line_to_return
+        line_to_return = "  " + str(track_number) + "->" + str(track_information[0]) + ", " + str(
+            track_information[1]) + ", " + "AAC-LC converting" + ", " + str(
+            track_information[3]) + ", " + bit_rate_audio + ", " + str(track_information[4])
 
+        if track_information_length != 5:
+            line_to_return += ", " + str(track_information[5]) + seventh
+
+    return line_to_return
 
 
 class HandBrake(object):
@@ -141,199 +155,226 @@ class HandBrake(object):
         # Audio Setting
         if self.detected_audio:
             # Audio Creation list
-            count = 1
-            for track_info in self.scan_result[11]:
-                if count == 1:
-                    self.audio_arg = str(track_info[0])
-                    self.audio_aname = str(track_info[1])
-                    if track_info[2].upper == "AAC":
+            detected_audio_counter = 1
+            for track_information in self.scan_result[11]:
+                if detected_audio_counter == 1:
+                    self.audio_arg = str(track_information[0])
+                    self.audio_aname = str(track_information[1])
+                    if track_information[2].upper == "AAC":
                         self.audio_encoder_arg = "copy:aac"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "AAC-LC":
+                    elif track_information[2].upper == "AAC-LC":
                         self.audio_encoder_arg = "copy:aac"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "AC3":
+                    elif track_information[2].upper == "AC3":
                         self.audio_encoder_arg = "copy:ac3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "DTS":
+                    elif track_information[2].upper == "DTS":
                         self.audio_encoder_arg = "copy:dts"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "DTS-ES":
+                    elif track_information[2].upper == "DTS-ES":
                         self.audio_encoder_arg = "copy:dts"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "DTSHD":
+                    elif track_information[2].upper == "DTSHD":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "DTS-HDMA":
+                    elif track_information[2].upper == "DTS-HDMA":
                         self.audio_encoder_arg = "copy:dtshd"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
-                    elif track_info[2].upper == "MP3":
+                    elif track_information[2].upper == "DTS-HD MA":
+                        self.audio_encoder_arg = "copy:dtshd"
+                        self.audio_bit_rate_arg = "Auto"
+                        self.audio_sample_rate_arg = "Auto"
+                        self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
+                    elif track_information[2].upper == "DTS-HD HRA":
+                        self.audio_encoder_arg = "copy:dtshd"
+                        self.audio_bit_rate_arg = "Auto"
+                        self.audio_sample_rate_arg = "Auto"
+                        self.audio_mix_down_arg = "none"
+                        self.audio_normalize_mix_arg = "1"
+                    elif track_information[2].upper == "MP3":
                         self.audio_encoder_arg = "copy:mp3"
                         self.audio_bit_rate_arg = "Auto"
                         self.audio_sample_rate_arg = "Auto"
                         self.audio_mix_down_arg = "none"
                         self.audio_normalize_mix_arg = "1"
                     else:
-                        if track_info[3].strip() == "2.0ch":
+                        if track_information[3].strip() == "2.0ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "128"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "dpl2"
                             self.audio_normalize_mix_arg = "1"
-                        if track_info[3].strip() == "5.1ch":
+                        if track_information[3].strip() == "5.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "384"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "5point1"
                             self.audio_normalize_mix_arg = "1"
-                        if track_info[3].strip() == "6.1ch":
+                        if track_information[3].strip() == "6.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "448"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "6point1"
                             self.audio_normalize_mix_arg = "1"
-                        if track_info[3].strip() == "7.1ch":
+                        if track_information[3].strip() == "7.1ch":
                             self.audio_encoder_arg = "faac"
                             self.audio_bit_rate_arg = "768"
                             self.audio_sample_rate_arg = "Auto"
                             self.audio_mix_down_arg = "7point1"
                             self.audio_normalize_mix_arg = "1"
 
-                elif not count == 1:
-                    self.audio_arg = str(self.audio_arg + "," + str(track_info[0]))
-                    self.audio_aname = str(self.audio_aname) + "," + str(track_info[1])
-                    if track_info[2].upper == "AAC":
+                elif not detected_audio_counter == 1:
+                    self.audio_arg = str(self.audio_arg + "," + str(track_information[0]))
+                    self.audio_aname = str(self.audio_aname) + "," + str(track_information[1])
+                    if track_information[2].upper == "AAC":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    if track_info[2].upper == "AAC-LC":
+                    if track_information[2].upper == "AAC-LC":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:aac"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "AC3":
+                    elif track_information[2].upper == "AC3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:ac3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "DTS":
+                    elif track_information[2].upper == "DTS":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "DTS-ES":
+                    elif track_information[2].upper == "DTS-ES":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dts"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "DTSHD":
+                    elif track_information[2].upper == "DTSHD":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "DTS-HDMA":
+                    elif track_information[2].upper == "DTS-HDMA":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                    elif track_info[2].upper == "MP3":
+                    elif track_information[2].upper == "DTS-HD MA":
+                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
+                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
+                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
+                    elif track_information[2].upper == "DTS-HD HRA":
+                        self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:dtshd"
+                        self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
+                        self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
+                        self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
+                        self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
+                    elif track_information[2].upper == "MP3":
                         self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "copy:mp3"
                         self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "Auto"
                         self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                         self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "none"
                         self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
                     else:
-                        if track_info[3] == "2.0ch":
+                        if track_information[3] == "2.0ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "128"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "dpl2"
                             self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                        elif track_info[3] == "5.1ch":
+                        elif track_information[3] == "5.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "384"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "5point1"
                             self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                        elif track_info[3] == "6.1ch":
+                        elif track_information[3] == "6.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "448"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "6point1"
                             self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
-                        elif track_info[3] == "7.1ch":
+                        elif track_information[3] == "7.1ch":
                             self.audio_encoder_arg = str(self.audio_encoder_arg) + "," + "faac"
                             self.audio_bit_rate_arg = str(self.audio_bit_rate_arg) + "," + "768"
                             self.audio_sample_rate_arg = str(self.audio_sample_rate_arg) + "," + "Auto"
                             self.audio_mix_down_arg = str(self.audio_mix_down_arg) + "," + "7point1"
                             self.audio_normalize_mix_arg = str(self.audio_normalize_mix_arg) + "," + "1"
 
-                count += 1
-                # print "self.AUDIO_ARG = " + str(self.AUDIO_ARG)
+                detected_audio_counter += 1
+                # print "self.audio_arg = " + str(self.audio_arg)
                 # print "self.audio_encoder_arg = " + str(self.audio_encoder_arg)
                 # print "self.audio_bit_rate_arg = " + str(self.audio_bit_rate_arg)
                 # print "self.audio_sample_rate_arg = " + str(self.audio_sample_rate_arg)
                 # print "self.audio_mix_down_arg = " + str(self.audio_mix_down_arg)
                 # print "self.audio_normalize_mix_arg = " + str(self.audio_normalize_mix_arg)
-                # print "self.AUDIO_ANAME = " + str(self.AUDIO_ANAME)
+                # print "self.audio_aname = " + str(self.audio_aname)
         # Subtitle Creation  list
         if self.detected_subtitle:
-            count = 1
-            for track_info in self.scan_result[12]:
-                if count == 1:
-                    self.subtitle = str(track_info[0])
-                elif not count == 1:
-                    self.subtitle = str(self.subtitle + "," + str(track_info[0]))
-                count += 1
+            detected_subtitle_counter = 1
+            for track_information in self.scan_result[12]:
+                if detected_subtitle_counter == 1:
+                    self.subtitle = str(track_information[0])
+                elif not detected_subtitle_counter == 1:
+                    self.subtitle = str(self.subtitle + "," + str(track_information[0]))
+                detected_subtitle_counter += 1
             self.subtitle_forced = "1"
             self.subtitle_default = "1"
 
-        # Video Setting
+        # Video Settings
         self.video_fps = float(self.scan_result[6])
-        self.x264_opts = "open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:vbv-maxrate=24000"
+        self.x264_opts = ''
+        self.x264_opts += 'open_gop=0:rc-lookahead=50:ref=6:bframes=6:me=umh:subme=8:trellis=0:analyse=all:b-adapt=2:'
+        self.x264_opts += 'nal_hrd=none:fast_pskip=0:bframes=6:direct=auto:weightb=1:weightp=2:vbv-bufsize=24000:'
+        self.x264_opts += 'vbv-maxrate=24000'
         # Video Picture size
         self.video_codec = self.scan_result[9]
 
-        size = self.scan_result[3].split('x')
-        self.video_width = int(size[0])
-        self.video_height = int(size[1])
+        video_x_y_values = self.scan_result[3].split('x')
+        self.video_width = int(video_x_y_values[0])
+        self.video_height = int(video_x_y_values[1])
 
         if int(self.video_height) > int(self.max_height):
             self.video_height = int(self.max_height)
             self.video_width = int(round(int(self.video_height) * float(self.scan_result[5])))
         else:
-            auto_crop = self.scan_result[7].split('/')
-            subtract_to_w = int(auto_crop[2]) + int(auto_crop[3])
-            subtract_to_h = int(auto_crop[0]) + int(auto_crop[0])
+            auto_crop_value = self.scan_result[7].split('/')
+            subtract_to_w = int(auto_crop_value[2]) + int(auto_crop_value[3])
+            subtract_to_h = int(auto_crop_value[0]) + int(auto_crop_value[0])
             self.video_height = int(self.video_height - subtract_to_h)
             self.video_width = int(self.video_width - subtract_to_w)
 
@@ -537,9 +578,9 @@ class HandBrake(object):
         # Filters
         cmd.append('--decomb')
 
-        ###################
-        # Execute the CMD #
-        ###################
+        # ##################
+        # Execute the CMD  #
+        # ##################
         # Tmp File creation
         # It generate a random name for the STDOUT of the transcoder
         filename = tempfile.mktemp("", "hb.", dir=self.working_dir)
@@ -549,9 +590,9 @@ class HandBrake(object):
         # Load the os.environ for use it during the subprocess creation
         # Bye luck we have set the os.environ["TMPDIR"] before :)
         environment = os.environ
-        with io.open(filename, 'wb') as writer, io.open(filename, 'rb', 1) as reader:
+        # with io.open(filename, 'wb') as writer, io.open(filename, 'rb', 1) as reader:
+        with io.open(filename, 'wb') as writer:
             process = subprocess.Popen(cmd, stdout=writer, stderr=writer, env=environment)
-            # time.sleep(1)
             while process.poll() is None:
                 time.sleep(0.3)
                 last_line = open(filename).readlines()
@@ -567,36 +608,36 @@ class HandBrake(object):
                 sys.stdout.flush()
 
     @staticmethod
-    def get_std_max_size(height):
-        if height == 4320:
+    def get_std_max_size(video_height):
+        if video_height == 4320:
             return int(7680)
-        elif height == 2160:
+        elif video_height == 2160:
             return int(3840)
-        elif height == 1080:
+        elif video_height == 1080:
             return int(1920)
-        elif height == 720:
+        elif video_height == 720:
             return int(1280)
-        elif height == 576:
+        elif video_height == 576:
             return int(1024)
-        elif height == 480:
+        elif video_height == 480:
             return int(848)
-        elif height == 432:
+        elif video_height == 432:
             return int(768)
-        elif height == 360:
+        elif video_height == 360:
             return int(640)
-        elif height == 240:
+        elif video_height == 240:
             return int(424)
 
     @staticmethod
-    def get_fps_info(fps):
-        if fps == "23.976":
+    def get_fps_info(video_fps):
+        if video_fps == "23.976":
             return str("23.976 (NTSC Film)")
-        elif fps == "25.000" or fps == "25.00" or fps == "25.0" or "25":
+        elif video_fps == "25.000" or video_fps == "25.00" or video_fps == "25.0" or "25":
             return str("25 (PAL Film/Video)")
-        elif fps == "29.970" or fps == "29.97":
+        elif video_fps == "29.970" or video_fps == "29.97":
             return str("29.97 (NTSC Video)")
         else:
-            return str(fps)
+            return str(video_fps)
 
     @staticmethod
     def get_display_aspect_info(ratio):
@@ -652,7 +693,6 @@ class HandBrake(object):
         names.append(2160)
         names.append(4320)
 
-        width = video_width
         best_guess = -1
         index = 0
         maxi = len(resolutions)
@@ -662,7 +702,7 @@ class HandBrake(object):
                 res_gap = resolutions[index + 1] - resolutions[index]
                 step_threshold = res_gap / 2
                 cur_res = resolutions[index]
-                width_gap = int(width) - cur_res
+                width_gap = int(video_width) - cur_res
                 best_guess = index
                 if width_gap > step_threshold:
                     index += 1
@@ -688,40 +728,6 @@ class HandBrake(object):
         else:
             video_codec = "Unknown"
 
-        # Search for common information
-        # + title 1:
-        #  + stream: ./Matrix1.mkv
-        #  + duration: 02:16:19
-        #  + size: 1920x1080, pixel aspect: 1/1, display aspect: 1.78, 23.976 fps
-        #  + autocrop: 142/142/0/0
-        #  + support opencl: no
-        #  + support hwd: not built-in
-        #  + chapters:
-        #    + 1: cells 0->0, 0 blocks, duration 02:16:19
-        #  + audio tracks:
-        #    + 1, Francais (AC3) (5.1 ch) (iso639-2: fra), 48000Hz, 640000bps
-        #    + 2, English (AC3) (5.1 ch) (iso639-2: eng), 48000Hz, 640000bps
-        #  + subtitle tracks:
-        #    + 1, French (iso639-2: fra) (Text)(UTF-8)
-        #    + 2, English (iso639-2: eng) (Text)(UTF-8)
-        #
-        # HandBrake has exited.
-        # + title 1:
-        #  + stream: /home/hts/Transcode/Alien_theory/alien-theory-_-les-catastrophes-climatiques.2014-01-26.01-24.ts
-        #  + duration: 00:56:44
-        #  + size: 1920x1080, pixel aspect: 1/1, display aspect: 1.78, 25.000 fps
-        #  + autocrop: 2/0/0/0
-        #  + support opencl: no
-        #  + support hwd: not built-in
-        #  + chapters:
-        #    + 1: cells 0->0, 0 blocks, duration 00:56:44
-        #  + audio tracks:
-        #    + 1, Francais (E-AC3) (2.0 ch) (Dolby Surround) (iso639-2: fra)
-        #    + 2, Unknown (E-AC3) (2.0 ch) (Dolby Surround) (iso639-2: und)
-        #    + 3, Unknown (E-AC3) (2.0 ch) (Dolby Surround) (iso639-2: und)
-        #  + subtitle tracks:
-        #
-        # HandBrake has exited.
         # Pattern to search
         title = re.search('\+ title (\d+):', output, re.U | re.I)
         stream = re.search('  \+ stream: (.*?)\n', output, re.U | re.I)
@@ -763,8 +769,8 @@ class HandBrake(object):
                             audio_tracks_list_shorted.append(I)
                 # Add the rest
                 for I in audio_tracks_list:
-                    if not (I[4] == str(lang_iso639_pattern + self.primary_language) or I[4] == str(
-                                lang_iso639_pattern + self.secondary_language)):
+                    if not (I[4] == str(lang_iso639_pattern + self.primary_language) or
+                            I[4] == str(lang_iso639_pattern + self.secondary_language)):
                         audio_tracks_list_shorted.append(I)
 
             else:
@@ -774,7 +780,7 @@ class HandBrake(object):
                     for I in audio_tracks_list:
                         if I[4] == str(lang_iso639_pattern + self.primary_language):
                             audio_tracks_list_shorted.append(I)
-                    # In case where the the Native Language is not detect use the frist track
+                    # In case where the the Native Language is not detect use the first track
                     if len(audio_tracks_list_shorted) == 0:
                         audio_tracks_list_shorted.append(audio_tracks_list[0])
                 else:
@@ -822,7 +828,7 @@ class HandBrake(object):
             subtitle_tracks_list.append(0)
             subtitle_tracks_list_shorted = list()
             subtitle_tracks_list_shorted.append(0)
-        # Return Scan Informations
+        # Return Scan Information's
         return [title.group(1),
                 stream.group(1),
                 duration.group(1),
@@ -947,7 +953,8 @@ display_aspect = hb.scan_result[5]
 display_aspect_info = hb.get_display_aspect_info(str(display_aspect))
 fps = hb.scan_result[6]
 fps_info = hb.get_fps_info(fps)
-print "Title          : " + "\"" + str(video_title) + "\"" + ", Duration: " + str(duration) + " (" + str(seconds) + " Secs)"
+print "Title          : " + "\"" + str(video_title) + "\"" + ", Duration: " + str(duration) + " (" + str(
+    seconds) + " Secs)"
 print " Source        : " + str(input_file)
 print " Dimensions    : " + str(size)
 print " Video Codec   : " + str(video_codec.title())
@@ -961,18 +968,22 @@ if hb.detected_audio:
     count = 0
     for track_info in hb.scan_result[8]:
         if len(track_info) == 7:
-            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5]) + ", " + str(track_info[6])
+            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(
+                track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5]) + ", " + str(track_info[6])
         elif len(track_info) == 6:
-            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5])
+            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(
+                track_info[3]) + ", " + str(track_info[4]) + ", " + str(track_info[5])
         elif len(track_info) == 5:
-            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4])
+            print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(
+                track_info[3]) + ", " + str(track_info[4])
         count += 1
 if hb.detected_subtitle:
     subtitle_track_list = hb.scan_result[10]
     print " SubTitle Track(s): "
     count = 0
     for track_info in subtitle_track_list:
-        print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4])
+        print "  " + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(
+            track_info[3]) + ", " + str(track_info[4])
         count += 1
 
 print ""
@@ -996,8 +1007,8 @@ for height in def_list:
 
     ## Encode multi resolution 
     print " Destination   : " + str(output_file)
-    print " Dimensions    : " + str(width)+"x"+str(height)+" "+ str(res_txt)
-    print " Bitrate       : " + str(bit_rate)+" kbps  BPF: "+str(bpf)
+    print " Dimensions    : " + str(width) + "x" + str(height) + " " + str(res_txt)
+    print " Bitrate       : " + str(bit_rate) + " kbps  BPF: " + str(bpf)
     print " x264 Preset   : " + str(x264_preset.title())
     print " H.264 Profile : " + str(h264_profile.title())
     print " H.264 Level   : " + str(h264_level)
@@ -1017,10 +1028,11 @@ for height in def_list:
         print " SubTitle Track(s): "
         count = 1
         for track_info in subtitle_track_list_shorted:
-            print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4])
+            print "  " + str(count) + "->" + str(track_info[0]) + ", " + str(track_info[1]) + ", " + str(
+                track_info[2]) + ", " + str(track_info[3]) + ", " + str(track_info[4])
             count += 1
     print "Trancoding:"
-    
-    #Let start the transcoding
+
+    # Let start the transcoding
     hb.encode()
     print ""
